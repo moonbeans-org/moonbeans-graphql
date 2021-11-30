@@ -1,0 +1,12 @@
+{
+  "name": "moonbeans-graphql",
+  "version": "1.0.0",
+  "description": "Moonbeans Marketplace GraphQL",
+  "main": "index.js",
+  "dependencies": {
+    "http": "0.0.1-security",
+    "pg-promise": "^10.11.1",
+    "postgraphile": "^4.12.6",
+    "web3": "^1.6.1"
+  }
+}
