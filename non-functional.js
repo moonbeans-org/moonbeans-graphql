@@ -1,5 +1,5 @@
 const pgp = require("pg-promise")({});
-const cn = 'postgres://postgres:postgres@localhost:5432/moonbeans';
+const cn = 'postgres://postgres:postgres@smolmoonbeansdb2.c8nlnqwldxpz.us-east-1.rds.amazonaws.com:5432/template1';
 const db = pgp(cn);
 const fs = require("fs").promises;
 const Web3 = require("web3");
