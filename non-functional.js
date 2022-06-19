@@ -1,5 +1,5 @@
 const pgp = require("pg-promise")({});
-const cn = 'postgres://postgres:postgres@smolmoonbeansdb2.c8nlnqwldxpz.us-east-1.rds.amazonaws.com:5432/template1';
+const cn = 'postgres://postgress:<DBPASS>@<DBHOST>:5432/moonbeanstwochainz';
 const db = pgp(cn);
 const fs = require("fs").promises;
 const Web3 = require("web3");
@@ -11,25 +11,46 @@ const provider = new Web3.providers.WebsocketProvider("wss://moonriver.api.onfin
             keepalive: true,
             keepaliveInterval: -1
         },
-    
+
         reconnect: {
             auto: true,
             delay: 50000000,
             maxAttempts: 5,
             onTimeout: true
         },
-    
+
         timeout: 30000000
     })
     const web3 = new Web3(provider);
+
+const providerAlt = new Web3.providers.WebsocketProvider("wss://moonbeam.api.onfinality.io/public-ws", {
+        clientConfig: {
+            maxReceivedFrameSize: 100000000,
+            maxReceivedMessageSize: 100000000,
+            keepalive: true,
+            keepaliveInterval: -1
+        },
+
+        reconnect: {
+            auto: true,
+            delay: 50000000,
+            maxAttempts: 5,
+            onTimeout: true
+        },
+
+        timeout: 30000000
+    })
+    const web3alt = new Web3(providerAlt);
 
 async function main() {
     let mnbeansAsks = [];
     const collections = JSON.parse(await fs.readFile('./collections.json'));
     let collectionAddresses = {};
+    let collectionChains = {};
 
     for (let [key, val] of Object.entries(collections)) {
         collectionAddresses[val['contractAddress']] = val['title'];
+	collectionChains[val['contractAddress']] = val['chain'];
     }
 
     let oldAsks = [];
@@ -53,7 +74,12 @@ async function main() {
                 }
 
                 if (ask['timestamp'] < holder['lastTransfer']) {
-                    let tx = await web3.eth.getTransaction(ask['transactionHash']);
+		    let tx;
+		    if (collectionChains[ask['collectionId']]  === 'moonriver') {
+			tx = await web3.eth.getTransaction(ask['transactionHash']);
+		    } else if (collectionChains[ask['collectionId']] === 'moonbeam') {
+			tx = await web3alt.eth.getTransaction(ask['transactionHash']);
+		    }
 
                     if (tx['from'] != holder['currentOwner']) {
                         oldAsks.push(Object.assign({}, ask, holder));
@@ -95,7 +121,7 @@ async function main() {
         for (let collectionId in oldContracts) {
             console.log(`UPDATE "collections" SET "ceilingPrice" = (SELECT MAX("value") FROM "asks" WHERE "collectionId" = '${collectionId}'), "floorPrice" = (SELECT MIN("value") FROM "asks" WHERE "collectionId" = '${collectionId}') WHERE "id" = '${collectionId}';`);
         }
-    }   
+    }
 }
 
 function sleep(ms) {
@@ -105,6 +131,6 @@ function sleep(ms) {
 }
 
 main().then((e => {
-    console.log('Done'); 
+    console.log('Done');
     process.exit()
 }))
