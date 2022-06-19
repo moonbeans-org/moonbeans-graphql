@@ -60,7 +60,7 @@ function _typeToString(input) {
 
 async function startListening() {
     startListeningMarketplace();
-    //startListeningHolders();
+    startListeningHolders();
 }
 
 async function startListeningMarketplace() {
