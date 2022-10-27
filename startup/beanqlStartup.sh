@@ -19,4 +19,8 @@ pm2 set pm2-logrotate:retain 10
 pm2 set pm2-logrotate:compress true
 pm2 start moonriver.js
 pm2 start moonbeam.js
+mkdir deletions
+mkdir old-deletions
+touch deletions.txt
+(crontab -l 2>/dev/null; echo "0 * * * * /home/ec2-user/moonbeans-graphql/listingCleanup.sh") | crontab -
 echo DONE

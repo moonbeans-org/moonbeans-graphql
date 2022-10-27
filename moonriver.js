@@ -6,16 +6,15 @@ const { postgraphile } = require("postgraphile");
 const pgp = require("pg-promise")({});
 const cn = 'postgres://postgres:<DBPASS>@<DBHOST>:5432/moonbeanstwochainz';
 const db = pgp(cn);
+const ABIS = require("./abis.js");
 
-const marketPlaceAbi = [{ "type": "event", "name": "BidCancelled", "inputs": [{ "type": "address", "name": "token", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "id", "internalType": "uint256", "indexed": true }, { "type": "uint256", "name": "price", "internalType": "uint256", "indexed": true }, { "type": "address", "name": "buyer", "internalType": "address", "indexed": false }, { "type": "bool", "name": "escrowed", "internalType": "bool", "indexed": false }, { "type": "uint256", "name": "timestamp", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "BidPlaced", "inputs": [{ "type": "address", "name": "token", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "id", "internalType": "uint256", "indexed": true }, { "type": "uint256", "name": "price", "internalType": "uint256", "indexed": true }, { "type": "address", "name": "buyer", "internalType": "address", "indexed": false }, { "type": "uint256", "name": "timestamp", "internalType": "uint256", "indexed": false }, { "type": "bool", "name": "escrowed", "internalType": "bool", "indexed": false }], "anonymous": false }, { "type": "event", "name": "EscrowReturned", "inputs": [{ "type": "address", "name": "user", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "price", "internalType": "uint256", "indexed": true }], "anonymous": false }, { "type": "event", "name": "OwnershipTransferred", "inputs": [{ "type": "address", "name": "previousOwner", "internalType": "address", "indexed": true }, { "type": "address", "name": "newOwner", "internalType": "address", "indexed": true }], "anonymous": false }, { "type": "event", "name": "TokenDelisted", "inputs": [{ "type": "address", "name": "token", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "id", "internalType": "uint256", "indexed": true }, { "type": "uint256", "name": "timestamp", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "TokenListed", "inputs": [{ "type": "address", "name": "token", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "id", "internalType": "uint256", "indexed": true }, { "type": "uint256", "name": "price", "internalType": "uint256", "indexed": true }, { "type": "uint256", "name": "timestamp", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "event", "name": "TokenPurchased", "inputs": [{ "type": "address", "name": "oldOwner", "internalType": "address", "indexed": true }, { "type": "address", "name": "newOwner", "internalType": "address", "indexed": true }, { "type": "uint256", "name": "price", "internalType": "uint256", "indexed": true }, { "type": "address", "name": "collection", "internalType": "address", "indexed": false }, { "type": "uint256", "name": "tokenId", "internalType": "uint256", "indexed": false }], "anonymous": false }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "RecoverMOVR", "inputs": [{ "type": "address", "name": "to", "internalType": "address" }, { "type": "uint256", "name": "amount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "TOKEN", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "acceptOffer", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }, { "type": "uint256", "name": "price", "internalType": "uint256" }, { "type": "address", "name": "from", "internalType": "address" }, { "type": "bool", "name": "escrowedBid", "internalType": "bool" }] }, { "type": "function", "stateMutability": "payable", "outputs": [], "name": "addMoneyToEscrow", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "beanBuybackAddress", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "beanBuybackFee", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "beanieHolderAddress", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "beanieHolderFee", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "cancelOffer", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }, { "type": "uint256", "name": "price", "internalType": "uint256" }, { "type": "bool", "name": "escrowed", "internalType": "bool" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "checkEscrowAmount", "inputs": [{ "type": "address", "name": "user", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "clearAllBids", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "clearAllListings", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "clearBidsAfterAcceptingOffer", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "defaultCollectionOwnerFee", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "delistAfterAcceptingOffer", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "delistToken", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "devAddress", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "devFee", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "featuredCollection", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "feesOn", "inputs": [] }, { "type": "function", "stateMutability": "payable", "outputs": [], "name": "fulfillListing", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "getCollectionFee", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "getCollectionOwner", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "tuple", "name": "", "internalType": "struct MarketPlace.Listing", "components": [{ "type": "uint256", "name": "price", "internalType": "uint256" }, { "type": "uint256", "name": "timestamp", "internalType": "uint256" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }, { "type": "bool", "name": "accepted", "internalType": "bool" }] }], "name": "getCurrentListing", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "getCurrentListingPrice", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "getEscrowedAmount", "inputs": [{ "type": "address", "name": "user", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "tuple[]", "name": "", "internalType": "struct MarketPlace.Offer[]", "components": [{ "type": "uint256", "name": "price", "internalType": "uint256" }, { "type": "uint256", "name": "timestamp", "internalType": "uint256" }, { "type": "bool", "name": "accepted", "internalType": "bool" }, { "type": "address", "name": "buyer", "internalType": "address" }, { "type": "bool", "name": "escrowed", "internalType": "bool" }] }], "name": "getOffers", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "tuple[]", "name": "", "internalType": "struct MarketPlace.Listing[]", "components": [{ "type": "uint256", "name": "price", "internalType": "uint256" }, { "type": "uint256", "name": "timestamp", "internalType": "uint256" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }, { "type": "bool", "name": "accepted", "internalType": "bool" }] }], "name": "getTokenListingHistory", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "isCollectionTrading", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "isListed", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "listToken", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }, { "type": "uint256", "name": "price", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "payable", "outputs": [], "name": "makeEscrowedOffer", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }, { "type": "uint256", "name": "price", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "makeOffer", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }, { "type": "uint256", "name": "price", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [{ "type": "bytes4", "name": "", "internalType": "bytes4" }], "name": "onERC721Received", "inputs": [{ "type": "address", "name": "", "internalType": "address" }, { "type": "address", "name": "", "internalType": "address" }, { "type": "uint256", "name": "", "internalType": "uint256" }, { "type": "bytes", "name": "", "internalType": "bytes" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "address", "name": "", "internalType": "address" }], "name": "owner", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "recoverNFT", "inputs": [{ "type": "address", "name": "_token", "internalType": "address" }, { "type": "uint256", "name": "tokenId", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "recoverToken", "inputs": [{ "type": "address", "name": "_token", "internalType": "address" }, { "type": "uint256", "name": "amount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "renounceOwnership", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setBeanBuyBackFee", "inputs": [{ "type": "uint256", "name": "fee", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setBeanBuybackAddress", "inputs": [{ "type": "address", "name": "_address", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setBeanieHolderAddress", "inputs": [{ "type": "address", "name": "_address", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setBeanieHolderFee", "inputs": [{ "type": "uint256", "name": "fee", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setClearBidsAfterAcceptingOffer", "inputs": [{ "type": "bool", "name": "_value", "internalType": "bool" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setCollectionOwner", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "address", "name": "owner", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setCollectionOwnerFee", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "uint256", "name": "fee", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setCollectionTrading", "inputs": [{ "type": "address", "name": "ca", "internalType": "address" }, { "type": "bool", "name": "value", "internalType": "bool" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setDelistAfterAcceptingOffer", "inputs": [{ "type": "bool", "name": "_value", "internalType": "bool" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setDevAddress", "inputs": [{ "type": "address", "name": "_address", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setDevFee", "inputs": [{ "type": "uint256", "name": "fee", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setFeaturedCollection", "inputs": [{ "type": "address", "name": "_collection", "internalType": "address" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setFeesOn", "inputs": [{ "type": "bool", "name": "_value", "internalType": "bool" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setSpecialGasTax", "inputs": [{ "type": "uint256", "name": "gasAmount", "internalType": "uint256" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setSuperGasTaxes", "inputs": [{ "type": "bool", "name": "value", "internalType": "bool" }] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "setTrading", "inputs": [{ "type": "bool", "name": "value", "internalType": "bool" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "specialTaxGas", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "totalEscrowedAmount", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "uint256", "name": "", "internalType": "uint256" }], "name": "totalFees", "inputs": [] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "tradingPaused", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "transferOwnership", "inputs": [{ "type": "address", "name": "newOwner", "internalType": "address" }] }, { "type": "function", "stateMutability": "view", "outputs": [{ "type": "bool", "name": "", "internalType": "bool" }], "name": "useSuperGasTaxes", "inputs": [] }, { "type": "function", "stateMutability": "nonpayable", "outputs": [], "name": "withdrawMoneyFromEscrow", "inputs": [{ "type": "uint256", "name": "amount", "internalType": "uint256" }] }, { "type": "receive", "stateMutability": "payable" }];
-
-const blockBatch = 200;
+const blockBatch = 500;
 
 let methodSignatures = [];
 let collections = [];
 let blockTimestamps = {};
 
-const web3 = new Web3(new Web3.providers.WebsocketProvider("wss://moonriver.api.onfinality.io/public-ws", {
+const web3 = new Web3(new Web3.providers.WebsocketProvider("wss://moonriver.blastapi.io/b8f3e3d8-3ae3-4e8f-9879-29d4730dd73d", {
     clientConfig: {
         maxReceivedFrameSize: 100000000,
         maxReceivedMessageSize: 100000000,
@@ -33,7 +32,7 @@ const web3 = new Web3(new Web3.providers.WebsocketProvider("wss://moonriver.api.
     timeout: 30000
 }));
 
-marketPlaceAbi.map(function (abi) {
+ABIS.MARKET.map(function (abi) {
     if (abi.name) {
         const signature = web3.utils.sha3(
             abi.name +
@@ -49,7 +48,7 @@ marketPlaceAbi.map(function (abi) {
     }
 });
 
-const marketPlaceContract = new web3.eth.Contract(marketPlaceAbi, "0x16d7Edd3A562BB60aA0B3Af357A2c195cE2AA974");
+const marketPlaceContract = new web3.eth.Contract(ABIS.MARKET, "0x16d7Edd3A562BB60aA0B3Af357A2c195cE2AA974");
 
 function _typeToString(input) {
     if (input.type === "tuple") {
@@ -76,7 +75,7 @@ async function startListeningMarketplace() {
     if (endBlock > lastBlock) {
         endBlock = lastBlock;
     }
-    
+
     handleMarketplaceLogs(startBlock, endBlock, lastBlock);
 }
 
@@ -135,7 +134,7 @@ async function handleMarketplaceLogs(startBlock, endBlock, lastBlock) {
             await fs.writeFile("./last_block.txt", "" + startBlock);
             if (startBlock >= lastBlock) {
                 endBlock = await web3.eth.getBlockNumber();
-                await sleep(120000);
+                await sleep(30000);
             } else {
                 endBlock += blockBatch;
                 if (endBlock > lastBlock) {
@@ -463,9 +462,9 @@ async function startListeningHolders() {
 
     for (let key in collections) {
         let startBlockQuery = await db.oneOrNone('SELECT "value" FROM "meta" WHERE "name" = $1', ['last_block_' + key]);
-        let startBlock = 0;
+        let startBlock = collections[key]?.startBlock ?? 0;
         if (startBlockQuery === null) {
-            await db.any('INSERT INTO "meta" ("name", "value", "timestamp") VALUES ($1, $2, $3)', ['last_block_' + key, 0, Math.floor(Date.now() / 1000)]);      
+            await db.any('INSERT INTO "meta" ("name", "value", "timestamp") VALUES ($1, $2, $3)', ['last_block_' + key, startBlock, Math.floor(Date.now() / 1000)]);
         } else {
             startBlock = parseInt(startBlockQuery['value']);
         }
@@ -481,12 +480,12 @@ async function startListeningHolders() {
 
 async function handleCollectionTransfers(key, startBlock, endBlock) {
     let collection = collections[key];
-
+    if (collection['chain'] !== 'moonriver' || collection['isERC1155'] || collection['contractAddress'] === '0xfEd9e29b276C333b2F11cb1427142701d0D9f7bf') return;
     try {
         while (true) {
             console.log('Getting Transfer events for ' + collection['title'] + ' (' + collection['contractAddress'] + ') ' + startBlock + '/' + endBlock);
 
-            let contract = new web3.eth.Contract(collection['abi'], collection['contractAddress']);
+            let contract = new web3.eth.Contract(ABIS.NFT, collection['contractAddress']);
 
             let events = await contract.getPastEvents("Transfer", { 'fromBlock': startBlock, 'toBlock': endBlock });
 
@@ -519,7 +518,7 @@ async function handleCollectionTransfers(key, startBlock, endBlock) {
 
             startBlock = endBlock;
             await db.any('UPDATE "meta" SET "value" = $1, "timestamp" = $2 WHERE "name" = $3', [startBlock, Math.floor(Date.now() / 1000), 'last_block_' + key]);
-                    
+
             if (startBlock >= lastBlock) {
                 endBlock = await web3.eth.getBlockNumber();
                 await sleep(120000);
@@ -545,24 +544,28 @@ function sleep(ms) {
 
 startListening();
 
+
+//health check
 http.createServer(async function (req, res) {
     res.writeHead(200, {'Content-Type': 'application/json'});
 
     let responseData = {};
     responseData['last_block_movr'] = parseInt(await fs.readFile("last_block.txt"));
     responseData['last_block_glmr'] = parseInt(await fs.readFile("last_block_glmr.txt"));
-    
+
     let lastBlocksQuery = await db.manyOrNone('SELECT name, value, timestamp FROM "meta"');
     if (lastBlocksQuery.length > 0) {
         for (let row of lastBlocksQuery) {
             responseData[row['name']] = row['value'];
         }
     }
-    
+
     res.write(JSON.stringify(responseData));
     res.end();
 }).listen(8080);
 
+
+//GraphQL server
 http.createServer(
     postgraphile(
         cn,

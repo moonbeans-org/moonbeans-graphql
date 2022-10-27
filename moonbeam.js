@@ -6,10 +6,9 @@ const { postgraphile } = require("postgraphile");
 const pgp = require("pg-promise")({});
 const cn = 'postgres://postgres:<DBPASS>@<DBHOST>:5432/moonbeanstwochainz';
 const db = pgp(cn);
+const ABIS = require("./abis.js");
 
-const marketPlaceAbi = [{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"token","type":"address"},{"indexed":true,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":true,"internalType":"uint256","name":"price","type":"uint256"},{"indexed":false,"internalType":"address","name":"buyer","type":"address"},{"indexed":false,"internalType":"bool","name":"escrowed","type":"bool"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"BidCancelled","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"token","type":"address"},{"indexed":true,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":true,"internalType":"uint256","name":"price","type":"uint256"},{"indexed":false,"internalType":"address","name":"buyer","type":"address"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"},{"indexed":false,"internalType":"bool","name":"escrowed","type":"bool"}],"name":"BidPlaced","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"user","type":"address"},{"indexed":true,"internalType":"uint256","name":"price","type":"uint256"}],"name":"EscrowReturned","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"previousOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"}],"name":"OwnershipTransferred","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"token","type":"address"},{"indexed":true,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"TokenDelisted","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"token","type":"address"},{"indexed":true,"internalType":"uint256","name":"id","type":"uint256"},{"indexed":true,"internalType":"uint256","name":"price","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"timestamp","type":"uint256"}],"name":"TokenListed","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"oldOwner","type":"address"},{"indexed":true,"internalType":"address","name":"newOwner","type":"address"},{"indexed":true,"internalType":"uint256","name":"price","type":"uint256"},{"indexed":false,"internalType":"address","name":"collection","type":"address"},{"indexed":false,"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"TokenPurchased","type":"event"},{"inputs":[{"internalType":"address","name":"to","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"RecoverMOVR","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"TOKEN","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"address","name":"from","type":"address"},{"internalType":"bool","name":"escrowedBid","type":"bool"}],"name":"acceptOffer","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"addMoneyToEscrow","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[],"name":"beanBuybackAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"beanBuybackFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"beanieHolderAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"beanieHolderFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"bool","name":"escrowed","type":"bool"}],"name":"cancelOffer","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"checkEscrowAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"clearAllBids","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"clearAllListings","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"clearBidsAfterAcceptingOffer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"clearBidsAfterFulfillingListing","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"collectionOwnersCanSetRoyalties","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"defaultCollectionOwnerFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"delistAfterAcceptingOffer","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"delistToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"devAddress","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"devFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"feesOn","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"fulfillListing","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"}],"name":"getCollectionFee","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"}],"name":"getCollectionOwner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getCurrentListing","outputs":[{"components":[{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bool","name":"accepted","type":"bool"}],"internalType":"struct MarketPlace.Listing","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getCurrentListingPrice","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"user","type":"address"}],"name":"getEscrowedAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getOffers","outputs":[{"components":[{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"bool","name":"accepted","type":"bool"},{"internalType":"address","name":"buyer","type":"address"},{"internalType":"bool","name":"escrowed","type":"bool"}],"internalType":"struct MarketPlace.Offer[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"getTokenListingHistory","outputs":[{"components":[{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"uint256","name":"timestamp","type":"uint256"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"bool","name":"accepted","type":"bool"}],"internalType":"struct MarketPlace.Listing[]","name":"","type":"tuple[]"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"}],"name":"isCollectionTrading","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"isListed","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"price","type":"uint256"}],"name":"listToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"price","type":"uint256"}],"name":"makeEscrowedOffer","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"},{"internalType":"uint256","name":"price","type":"uint256"}],"name":"makeOffer","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"","type":"address"},{"internalType":"address","name":"","type":"address"},{"internalType":"uint256","name":"","type":"uint256"},{"internalType":"bytes","name":"","type":"bytes"}],"name":"onERC721Received","outputs":[{"internalType":"bytes4","name":"","type":"bytes4"}],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"owner","outputs":[{"internalType":"address","name":"","type":"address"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"_token","type":"address"},{"internalType":"uint256","name":"tokenId","type":"uint256"}],"name":"recoverNFT","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_token","type":"address"},{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"recoverToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"renounceOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"admin","type":"address"},{"internalType":"bool","name":"value","type":"bool"}],"name":"setAdmin","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"fee","type":"uint256"}],"name":"setBeanBuyBackFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"setBeanBuybackAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"setBeanieHolderAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"fee","type":"uint256"}],"name":"setBeanieHolderFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_value","type":"bool"}],"name":"setClearBidsAfterAcceptingOffer","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_value","type":"bool"}],"name":"setClearBidsAfterFulfillingListing","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"address","name":"owner","type":"address"}],"name":"setCollectionOwner","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"uint256","name":"fee","type":"uint256"}],"name":"setCollectionOwnerFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_value","type":"bool"}],"name":"setCollectionOwnersCanSetRoyalties","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"ca","type":"address"},{"internalType":"bool","name":"value","type":"bool"}],"name":"setCollectionTrading","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"fee","type":"uint256"}],"name":"setDefaultCollectionOwnerFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_value","type":"bool"}],"name":"setDelistAfterAcceptingOffer","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_address","type":"address"}],"name":"setDevAddress","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"fee","type":"uint256"}],"name":"setDevFee","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"_value","type":"bool"}],"name":"setFeesOn","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"address","name":"_token","type":"address"}],"name":"setPaymentToken","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"uint256","name":"gasAmount","type":"uint256"}],"name":"setSpecialGasTax","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"value","type":"bool"}],"name":"setSuperGasTaxes","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[{"internalType":"bool","name":"value","type":"bool"}],"name":"setTrading","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"specialTaxGas","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalEscrowedAmount","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"totalFees","outputs":[{"internalType":"uint256","name":"","type":"uint256"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"tradingPaused","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"address","name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"stateMutability":"nonpayable","type":"function"},{"inputs":[],"name":"useSuperGasTaxes","outputs":[{"internalType":"bool","name":"","type":"bool"}],"stateMutability":"view","type":"function"},{"inputs":[{"internalType":"uint256","name":"amount","type":"uint256"}],"name":"withdrawMoneyFromEscrow","outputs":[],"stateMutability":"nonpayable","type":"function"},{"stateMutability":"payable","type":"receive"}];
-
-const blockBatch = 200;
+const blockBatch = 500;
 
 let methodSignatures = [];
 let collections = [];
@@ -33,7 +32,7 @@ const web3 = new Web3(new Web3.providers.WebsocketProvider("wss://moonbeam.blast
     timeout: 30000
 }));
 
-marketPlaceAbi.map(function (abi) {
+ABIS.MARKET.map(function (abi) {
     if (abi.name) {
         const signature = web3.utils.sha3(
             abi.name +
@@ -49,7 +48,7 @@ marketPlaceAbi.map(function (abi) {
     }
 });
 
-const marketPlaceContract = new web3.eth.Contract(marketPlaceAbi, "0x683724817a7d526d6256Aec0D6f8ddF541b924de");
+const marketPlaceContract = new web3.eth.Contract(ABIS.MARKET, "0x683724817a7d526d6256Aec0D6f8ddF541b924de");
 
 function _typeToString(input) {
     if (input.type === "tuple") {
@@ -76,7 +75,7 @@ async function startListeningMarketplace() {
     if (endBlock > lastBlock) {
         endBlock = lastBlock;
     }
-    
+
     handleMarketplaceLogs(startBlock, endBlock, lastBlock);
 }
 
@@ -135,7 +134,7 @@ async function handleMarketplaceLogs(startBlock, endBlock, lastBlock) {
             await fs.writeFile("./last_block_glmr.txt", "" + startBlock);
             if (startBlock >= lastBlock) {
                 endBlock = await web3.eth.getBlockNumber();
-                await sleep(120000);
+                await sleep(30000);
             } else {
                 endBlock += blockBatch;
                 if (endBlock > lastBlock) {
@@ -182,14 +181,18 @@ async function handleTokenListed(row) {
         token['currentAsk'] = price;
     }
 
-    if (web3.utils.toBN(collection['ceilingPrice']).lte(price)) {
-        await db.any('UPDATE "collections" SET "ceilingPrice" = $1 WHERE "id" = $2', [price.toString(), row['returnValues']['token']]);
-        collection['ceilingPrice'] = price;
-    }
+    try {
+	    if (web3.utils.toBN(collection['ceilingPrice']).lte(price)) {
+		    await db.any('UPDATE "collections" SET "ceilingPrice" = $1 WHERE "id" = $2', [price.toString(), row['returnValues']['token']]);
+		    collection['ceilingPrice'] = price;
+	    }
 
-    if (web3.utils.toBN(collection['floorPrice']).gte(price)) {
-        await db.any('UPDATE "collections" SET "floorPrice" = $1 WHERE "id" = $2', [price.toString(), row['returnValues']['token']]);
-        collection['floorPrice'] = price;
+	    if (web3.utils.toBN(collection['floorPrice']).gte(price)) {
+		    await db.any('UPDATE "collections" SET "floorPrice" = $1 WHERE "id" = $2', [price.toString(), row['returnValues']['token']]);
+		    collection['floorPrice'] = price;
+	    }
+    } catch (e) {
+	    console.log(e);
     }
 
     // SAVE CURRENT ASK
@@ -463,9 +466,9 @@ async function startListeningHolders() {
 
     for (let key in collections) {
         let startBlockQuery = await db.oneOrNone('SELECT "value" FROM "meta" WHERE "name" = $1', ['last_block_' + key]);
-        let startBlock = 0;
+        let startBlock = collections[key]?.startBlock ?? 0;
         if (startBlockQuery === null) {
-            await db.any('INSERT INTO "meta" ("name", "value", "timestamp") VALUES ($1, $2, $3)', ['last_block_' + key, 0, Math.floor(Date.now() / 1000)]);      
+            await db.any('INSERT INTO "meta" ("name", "value", "timestamp") VALUES ($1, $2, $3)', ['last_block_' + key, startBlock, Math.floor(Date.now() / 1000)]);
         } else {
             startBlock = parseInt(startBlockQuery['value']);
         }
@@ -481,12 +484,12 @@ async function startListeningHolders() {
 
 async function handleCollectionTransfers(key, startBlock, endBlock) {
     let collection = collections[key];
-
+    if (collection['chain'] !== 'moonbeam' || collection['isERC1155']) return;
     try {
         while (true) {
             console.log('Getting Transfer events for ' + collection['title'] + ' (' + collection['contractAddress'] + ') ' + startBlock + '/' + endBlock);
 
-            let contract = new web3.eth.Contract(collection['abi'], collection['contractAddress']);
+            let contract = new web3.eth.Contract(ABIS.NFT, collection['contractAddress']);
 
             let events = await contract.getPastEvents("Transfer", { 'fromBlock': startBlock, 'toBlock': endBlock });
 
@@ -519,7 +522,7 @@ async function handleCollectionTransfers(key, startBlock, endBlock) {
 
             startBlock = endBlock;
             await db.any('UPDATE "meta" SET "value" = $1, "timestamp" = $2 WHERE "name" = $3', [startBlock, Math.floor(Date.now() / 1000), 'last_block_' + key]);
-                    
+
             if (startBlock >= lastBlock) {
                 endBlock = await web3.eth.getBlockNumber();
                 await sleep(120000);
