@@ -1,5 +1,5 @@
 const pgp = require("pg-promise")({});
-const cn = 'postgres://postgress:<DBPASS>@<DBHOST>:5432/moonbeanstwochainz';
+const cn = 'postgres://postgres:<DBPASS>@<DBHOST>:5432/moonbeanstwochainz';
 const db = pgp(cn);
 const fs = require("fs").promises;
 const Web3 = require("web3");
