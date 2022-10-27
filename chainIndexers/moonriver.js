@@ -6,7 +6,7 @@ const { postgraphile } = require("postgraphile");
 const pgp = require("pg-promise")({});
 const cn = 'postgres://postgres:<DBPASS>@<DBHOST>:5432/moonbeanstwochainz';
 const db = pgp(cn);
-const ABIS = require("./abis.js");
+const ABIS = require("./utils/abis.js");
 
 const blockBatch = 500;
 
@@ -456,7 +456,7 @@ function sleep(ms) {
 }
 
 async function startListeningHolders() {
-    collections = JSON.parse(await fs.readFile('collections.json'));
+    collections = JSON.parse(await fs.readFile('./utils/collections.json'));
 
     lastBlock = await web3.eth.getBlockNumber();
 

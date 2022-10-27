@@ -7,8 +7,8 @@ curl -sL https://rpm.nodesource.com/setup_16.x | bash -
 yum install -y nodejs
 amazon-linux-extras enable postgresql10
 yum install -y postgresql
-sed -i 's/<DBPASS>/xxxxx/' watcher.js
-sed -i 's/<DBHOST>/xxxxx/' watcher.js
+sed -i 's/<DBPASS>/xxxxx/' ../watcher.js
+sed -i 's/<DBHOST>/xxxxx/' ../watcher.js
 npm i
 npm install pm2
 pm2 install pm2-logrotate
