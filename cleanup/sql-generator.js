@@ -4,26 +4,7 @@ const db = pgp(cn);
 const fs = require("fs").promises;
 const Web3 = require("web3");
 
-const provider = new Web3.providers.WebsocketProvider("wss://moonriver.api.onfinality.io/public-ws", {
-        clientConfig: {
-            maxReceivedFrameSize: 100000000,
-            maxReceivedMessageSize: 100000000,
-            keepalive: true,
-            keepaliveInterval: -1
-        },
-    
-        reconnect: {
-            auto: true,
-            delay: 50000000,
-            maxAttempts: 5,
-            onTimeout: true
-        },
-    
-        timeout: 30000000
-    })
-const web3 = new Web3(provider);
-
-const providerAlt = new Web3.providers.WebsocketProvider("wss://moonbeam.api.onfinality.io/public-ws", {
+const providerMOVR = new Web3.providers.WebsocketProvider("wss://moonriver.api.onfinality.io/public-ws", {
         clientConfig: {
             maxReceivedFrameSize: 100000000,
             maxReceivedMessageSize: 100000000,
@@ -40,7 +21,46 @@ const providerAlt = new Web3.providers.WebsocketProvider("wss://moonbeam.api.onf
 
         timeout: 30000000
     })
-const web3alt = new Web3(providerAlt);
+
+const providerGLMR = new Web3.providers.WebsocketProvider("wss://moonbeam.api.onfinality.io/public-ws", {
+        clientConfig: {
+            maxReceivedFrameSize: 100000000,
+            maxReceivedMessageSize: 100000000,
+            keepalive: true,
+            keepaliveInterval: -1
+        },
+
+        reconnect: {
+            auto: true,
+            delay: 50000000,
+            maxAttempts: 5,
+            onTimeout: true
+        },
+
+        timeout: 30000000
+    })
+
+// const providerNOVA = new Web3.providers.WebsocketProvider("wss://bold-greatest-frog.nova-mainnet.discover.quiknode.pro/06c3e46fa798872b6c473beb9c53ef101695fbb7/", {
+//     clientConfig: {
+//         maxReceivedFrameSize: 100000000,
+//         maxReceivedMessageSize: 100000000,
+//         keepalive: true,
+//         keepaliveInterval: -1
+//     },
+
+//     reconnect: {
+//         auto: true,
+//         delay: 50000000,
+//         maxAttempts: 5,
+//         onTimeout: true
+//     },
+
+//     timeout: 30000000
+// })
+
+const web3movr = new Web3(providerMOVR);
+const web3glmr = new Web3(providerGLMR);
+// const web3nova = new Web3(providerNOVA);
 
 async function main() {
     let mnbeansAsks = [];
@@ -74,18 +94,20 @@ async function main() {
                 }
 
                 if (ask['timestamp'] < holder['lastTransfer']) {
-		    let tx;
-		    if (collectionChains[ask['collectionId']]  === 'moonriver') {
-			tx = await web3.eth.getTransaction(ask['transactionHash']);
-		    } else if (collectionChains[ask['collectionId']] === 'moonbeam') {
-			tx = await web3alt.eth.getTransaction(ask['transactionHash']);
-		    }
+                    let tx;
+                    if (collectionChains[ask['collectionId']]  === 'moonriver') {
+                        tx = await web3movr.eth.getTransaction(ask['transactionHash']);
+                    } else if (collectionChains[ask['collectionId']] === 'moonbeam') {
+                        tx = await web3glmr.eth.getTransaction(ask['transactionHash']);
+                    } else if (collectionChains[ask['collectionId']] === 'arbitrumnova') {
+                        // tx = await web3nova.eth.getTransaction(ask['transactionHash']);
+                        console.log('new chain who dis');
+                    }
 
                     if (tx['from'] != holder['currentOwner']) {
-                        oldAsks.push(Object.assign({}, ask, holder));
+                            oldAsks.push(Object.assign({}, ask, holder));
                     }
                 }
-
                 mnbeansAsks.shift();
             }
         } catch (e) {

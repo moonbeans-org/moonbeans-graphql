@@ -1,27 +1,37 @@
+require('dotenv').config()
 const ConnectionFilterPlugin = require("postgraphile-plugin-connection-filter");
 const fs = require("fs").promises;
 const http = require("http");
 const { postgraphile } = require("postgraphile");
 const pgp = require("pg-promise")({});
-const cn = 'postgres://postgres:<DBPASS>@<DBHOST>:5432/moonbeanstwochainz';
+const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}/${process.env.DBNAME}`;
 const db = pgp(cn);
 
+//Health Check & Convenience Endpoints
 http.createServer(async function (req, res) {
     res.writeHead(200, {'Content-Type': 'application/json'});
 
     let responseData = {};
-    
+
     let lastBlocksQuery = await db.manyOrNone('SELECT name, value, timestamp FROM "meta"');
     if (lastBlocksQuery.length > 0) {
         for (let row of lastBlocksQuery) {
             responseData[row['name']] = row['value'];
         }
     }
+
+    responseData['last_block_movr'] = parseInt(await fs.readFile("./chainIndexers/last_block_movr.txt"));
+    responseData['last_block_glmr'] = parseInt(await fs.readFile("./chainIndexers/last_block_glmr.txt"));
+    responseData['last_block_nova'] = parseInt(await fs.readFile("./chainIndexers/last_block_nova.txt"));
     
     res.write(JSON.stringify(responseData));
     res.end();
 }).listen(8080);
 
+
+
+
+//GraphQL server
 http.createServer(
     postgraphile(
         cn,

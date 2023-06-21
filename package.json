@@ -4,6 +4,8 @@
   "description": "Moonbeans Marketplace GraphQL",
   "main": "index.js",
   "dependencies": {
+    "commander": "^10.0.0",
+    "dotenv": "^16.0.3",
     "http": "0.0.1-security",
     "pg-promise": "^10.11.1",
     "postgraphile": "^4.12.6",

@@ -1,0 +1,9 @@
+{
+    "moonbeansunique": {
+        "chain": "arbitrumgoerli",
+        "contractAddress": "0xB967DaE501F16E229A83f0C4FeA263A4be528dF4",
+        "title": "Moonbeans Unique",
+        "isERC1155": false,
+        "startBlock": 1137575
+    }
+}

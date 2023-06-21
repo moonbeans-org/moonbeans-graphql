@@ -11,6 +11,8 @@ sed -i 's/<DBPASS>/xxxxx/' ../chainIndexers/moonriver.js
 sed -i 's/<DBHOST>/xxxxx/' ../chainIndexers/moonriver.js
 sed -i 's/<DBPASS>/xxxxx/' ../chainIndexers/moonbeam.js
 sed -i 's/<DBHOST>/xxxxx/' ../chainIndexers/moonbeam.js
+# sed -i 's/<DBPASS>/xxxxx/' ../chainIndexers/arbitrumnova.js
+# sed -i 's/<DBHOST>/xxxxx/' ../chainIndexers/arbitrumnova.js
 npm i
 npm install pm2
 pm2 install pm2-logrotate

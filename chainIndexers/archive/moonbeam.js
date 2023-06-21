@@ -2,11 +2,13 @@ const ConnectionFilterPlugin = require("postgraphile-plugin-connection-filter");
 const Web3 = require("web3");
 const fs = require("fs").promises;
 const http = require("http");
+const timers = require('timers/promises');
 const { postgraphile } = require("postgraphile");
 const pgp = require("pg-promise")({});
 const cn = 'postgres://postgres:<DBPASS>@<DBHOST>:5432/moonbeanstwochainz';
 const db = pgp(cn);
 const ABIS = require("./utils/abis.js");
+const CHAIN_NAME = "moonbeam";
 
 const blockBatch = 500;
 
@@ -151,11 +153,12 @@ async function handleMarketplaceLogs(startBlock, endBlock, lastBlock) {
 async function handleTokenListed(row) {
     const id = `${row['returnValues']['token']}-${row['returnValues']['id']}`;
     const price = web3.utils.toBN(row['returnValues']['price']);
+    let tx = await web3.eth.getTransaction(row['transactionHash']);
 
     // CREATE OR GET COLLECTION
     let collection = await db.oneOrNone('SELECT * FROM "collections" WHERE "id" = $1', [row['returnValues']['token']]);
     if (collection === null) {
-        await db.any('INSERT INTO "collections" ("id", "ceilingPrice", "floorPrice", "volumeOverall") VALUES ($1, $2, $3, $4)', [row['returnValues']['token'], 0, 0, 0]);
+        await db.any('INSERT INTO "collections" ("id", "ceilingPrice", "floorPrice", "volumeOverall", "chainName") VALUES ($1, $2, $3, $4, $5)', [row['returnValues']['token'], 0, 0, 0, CHAIN_NAME]);
         collection = {
             'id': row['returnValues']['token'],
             'ceilingPrice': 0,
@@ -197,12 +200,14 @@ async function handleTokenListed(row) {
 
     // SAVE CURRENT ASK
     await db.any('DELETE FROM "asks" WHERE "id" = $1', [id]);
-    await db.any('INSERT INTO "asks" ("id", "collectionId", "tokenNumber", "tokenId", "value", "timestamp", "transactionHash") VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [id, row['returnValues']['token'], row['returnValues']['id'], id, price.toString(), row['returnValues']['timestamp'], row['transactionHash']]);
+    await db.any('INSERT INTO "asks" ("id", "collectionId", "tokenNumber", "tokenId", "value", "timestamp", "transactionHash", "lister", "chainName", "listingHash", "expiry") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
+        [id, row['returnValues']['token'], row['returnValues']['id'], id, price.toString(), row['returnValues']['timestamp'], row['transactionHash'], tx['from'], CHAIN_NAME, "NOT_APPLICABLE", 0]
+    );
 
     // SAVE CURRENT ASK INTO HISTORY
-    await db.any('INSERT INTO "askHistories" ("collectionId", "tokenNumber", "tokenId", "value", "timestamp", "accepted", "transactionHash") VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [row['returnValues']['token'], row['returnValues']['id'], id, price.toString(), row['returnValues']['timestamp'], 0, row['transactionHash']]);
+    await db.any('INSERT INTO "askHistories" ("collectionId", "tokenNumber", "tokenId", "value", "timestamp", "accepted", "transactionHash", "lister", "chainName", "listingHash", "expiry") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
+        [row['returnValues']['token'], row['returnValues']['id'], id, price.toString(), row['returnValues']['timestamp'], 0, row['transactionHash'], tx['from'], CHAIN_NAME, "NOT_APPLICABLE", 0]
+    );
 
     console.log(`[TOKEN LISTED] tx: ${row['transactionHash']}; token: ${row['returnValues']['id']}; collection: ${row['returnValues']['token']}}; price: ${price}`);
 }
@@ -222,8 +227,9 @@ async function handleTokenDelisted(row) {
     await db.any('DELETE FROM "asks" WHERE "id" = $1', [id]);
 
     // SAVE DELIST TO ASK HISTORY
-    await db.any('INSERT INTO "askHistories" ("collectionId", "tokenNumber", "tokenId", "value", "timestamp", "accepted", "transactionHash") VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [row['returnValues']['token'], row['returnValues']['id'], id, 0, row['returnValues']['timestamp'], 0, row['transactionHash']]);
+    await db.any('INSERT INTO "askHistories" ("collectionId", "tokenNumber", "tokenId", "value", "timestamp", "accepted", "transactionHash", "lister", "chainName", "listingHash", "expiry") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
+        [row['returnValues']['token'], row['returnValues']['id'], id, 0, row['returnValues']['timestamp'], 0, row['transactionHash'], tx['from'], CHAIN_NAME, "NOT_APPLICABLE", 0]
+    );
 
     // UPDATE COLLECTION
     let collection = await db.oneOrNone('SELECT * FROM "collections" WHERE "id" = $1', [row['returnValues']['token']]);
@@ -252,7 +258,9 @@ async function handleTokenPurchased(row) {
         let bid = await db.oneOrNone('SELECT * FROM "bids" WHERE "tokenId" = $1 AND "buyer" = $2 AND "value" = $3 ORDER BY "timestamp" DESC LIMIT 1', [id, row['returnValues']['newOwner'], web3.utils.toBN(row['returnValues']['price']).toString()]);
         if (bid !== null) {
             // SAVE FILL
-            await db.any('INSERT INTO "fills" ("id", "collectionId", "tokenNumber", "tokenId", "value", "timestamp", "buyer", "type") VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [fillId, row['returnValues']['collection'], row['returnValues']['tokenId'], id, web3.utils.toBN(row['returnValues']['price']).toString(), block['timestamp'], row['returnValues']['newOwner'], 'bid']);
+            await db.any('INSERT INTO "fills" ("id", "collectionId", "tokenNumber", "tokenId", "value", "timestamp", "buyer", "type", "chainName", "tradeHash", "seller") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', 
+                [fillId, row['returnValues']['collection'], row['returnValues']['tokenId'], id, web3.utils.toBN(row['returnValues']['price']).toString(), block['timestamp'], row['returnValues']['newOwner'], 'bid', CHAIN_NAME, "NOT_APPLICABLE", row['returnValues']['oldOwner']]
+            );
 
             // REMOVE BID
             await db.any('DELETE FROM "bids" WHERE "id" = $1', [bid['id']]);
@@ -295,7 +303,9 @@ async function handleTokenPurchased(row) {
             await db.any('UPDATE "tokens" SET "currentAsk" = $1 WHERE "id" = $2', [0, id]);
 
             // SAVE FILL
-            await db.any('INSERT INTO "fills" ("id", "collectionId", "tokenNumber", "tokenId", "value", "timestamp", "buyer", "type") VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [fillId, row['returnValues']['collection'], row['returnValues']['tokenId'], id, web3.utils.toBN(row['returnValues']['price']).toString(), block['timestamp'], row['returnValues']['newOwner'], 'ask']);
+            await db.any('INSERT INTO "fills" ("id", "collectionId", "tokenNumber", "tokenId", "value", "timestamp", "buyer", "type", "chainName", "tradeHash", "seller") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)', 
+                [fillId, row['returnValues']['collection'], row['returnValues']['tokenId'], id, web3.utils.toBN(row['returnValues']['price']).toString(), block['timestamp'], row['returnValues']['newOwner'], 'ask', CHAIN_NAME, "NOT_APPLICABLE", row['returnValues']['oldOwner']]
+            );
 
             // UPDATE OLD ASK HISTORY
             await db.any('UPDATE "askHistories" SET "accepted" = $1 WHERE "id" = $2', [1, askHistoryId]);
@@ -332,7 +342,7 @@ async function handledBidPlaced(row) {
     // CREATE OR GET COLLECTION
     let collection = await db.oneOrNone('SELECT * FROM "collections" WHERE "id" = $1', [row['returnValues']['token']]);
     if (collection === null) {
-        await db.any('INSERT INTO "collections" ("id", "ceilingPrice", "floorPrice", "volumeOverall") VALUES ($1, $2, $3, $4)', [row['returnValues']['token'], 0, 0, 0]);
+        await db.any('INSERT INTO "collections" ("id", "ceilingPrice", "floorPrice", "volumeOverall", "chainName") VALUES ($1, $2, $3, $4, $5)', [row['returnValues']['token'], 0, 0, 0, CHAIN_NAME]);
         collection = {
             'id': row['returnValues']['token'],
             'ceilingPrice': 0,
@@ -365,9 +375,18 @@ async function handledBidPlaced(row) {
         }
     }
 
+    let potentialSeller = "NOT_APPLICABLE";
+    try {
+        const nftContract = new web3.eth.Contract(ABIS.NFT, row['returnValues']['token']);
+        potentialSeller = await timers.setTimeout(500, nftContract.methods.ownerOf(i.toString()).call());
+    } catch (e) {
+        console.log(e);
+    }
+
     // SAVE BID
-    await db.any('INSERT INTO "bids" ("id", "collectionId", "tokenNumber", "tokenId", "value", "timestamp", "buyer", "transactionHash") VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-        [bidId, row['returnValues']['token'], row['returnValues']['id'], id, price.toString(), row['returnValues']['timestamp'], row['returnValues']['buyer'], row['transactionHash']]);
+    await db.any('INSERT INTO "bids" ("id", "collectionId", "tokenNumber", "tokenId", "value", "timestamp", "buyer", "transactionHash", "expiry", "offerHash", "chainName", "seller") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)',
+        [bidId, row['returnValues']['token'], row['returnValues']['id'], id, price.toString(), row['returnValues']['timestamp'], row['returnValues']['buyer'], row['transactionHash'], 0, "NOT_APPLICABLE", CHAIN_NAME, potentialSeller]
+    );
 
     console.log(`[BID PLACED] tx: ${row['transactionHash']}; token: ${row['returnValues']['id']}; collection: ${row['returnValues']['token']}; price: ${price}}`)
 
@@ -397,8 +416,8 @@ async function handleBidCancelled(row) {
 }
 
 async function handleTransaction(row) {
-    await db.any('INSERT INTO "transactions" ("id", "blockNumber", "timestamp") VALUES ($1, $2, $3)',
-        [row['transactionEventHash'], row['blockNumber'], row['timestamp']]);
+    await db.any('INSERT INTO "transactions" ("id", "blockNumber", "timestamp", "chainName") VALUES ($1, $2, $3, $4)',
+        [row['transactionEventHash'], row['blockNumber'], row['timestamp'], CHAIN_NAME]);
 }
 
 async function getTokenPrices(id) {
@@ -514,7 +533,7 @@ async function handleCollectionTransfers(key, startBlock, endBlock) {
 
                 let token = await db.oneOrNone('SELECT * FROM "holders" WHERE "id" = $1', [id]);
                 if (token === null) {
-                    await db.any('INSERT INTO "holders" ("id", "tokenNumber", "collectionId", "currentOwner", "lastTransfer") VALUES ($1, $2, $3, $4, $5)', [id, row['returnValues']['2'], collection['contractAddress'], row['returnValues']['1'], row['timestamp']]);
+                    await db.any('INSERT INTO "holders" ("id", "tokenNumber", "collectionId", "currentOwner", "lastTransfer", "chainName") VALUES ($1, $2, $3, $4, $5, $6)', [id, row['returnValues']['2'], collection['contractAddress'], row['returnValues']['1'], row['timestamp'], CHAIN_NAME]);
                 } else {
                     await db.any('UPDATE "holders" SET "currentOwner" = $1, "lastTransfer" = $2 WHERE "id" = $3', [row['returnValues']['1'], row['timestamp'], id]);
                 }
