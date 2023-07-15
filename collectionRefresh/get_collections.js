@@ -6,11 +6,11 @@ const fetch = require('node-fetch');
 fetch("https://staging.api.moonbeans.io/collection", {
   "method": "GET"
 }).then(res => {return res.json()}).then(async response => {
-    await fs.writeFile('./utils/test_collections.json', JSON.stringify(response, null, 3));
+    await fs.writeFile('./chainIndexers/utils/test_collections.json', JSON.stringify(response, null, 3));
 });
 
 fetch("https://api.moonbeans.io/collection", {
   "method": "GET"
 }).then(res => {return res.json()}).then(async response => {
-    await fs.writeFile('./utils/collections.json', JSON.stringify(response, null, 3));
+    await fs.writeFile('./chainIndexers/utils/collections.json', JSON.stringify(response, null, 3));
 });
