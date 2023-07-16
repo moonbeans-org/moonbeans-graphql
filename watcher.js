@@ -9,6 +9,7 @@ const db = pgp(cn);
 
 //Health Check & Convenience Endpoints
 http.createServer(async function (req, res) {
+    console.log('Checking health...');
     res.writeHead(200, {'Content-Type': 'application/json'});
 
     let responseData = {};
@@ -22,10 +23,10 @@ http.createServer(async function (req, res) {
 
     responseData['last_block_movr'] = parseInt(await fs.readFile("./chainIndexers/last_block_moonriver.txt"));
     responseData['last_block_glmr'] = parseInt(await fs.readFile("./chainIndexers/last_block_moonbeam.txt"));
-    responseData['last_block_nova'] = parseInt(await fs.readFile("./chainIndexers/last_block_arbitrum_nova.txt"));
-    
+
     res.write(JSON.stringify(responseData));
     res.end();
+    console.log('Health check completed!');
 }).listen(8080);
 
 
