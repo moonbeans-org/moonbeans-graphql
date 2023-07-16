@@ -44,10 +44,10 @@ env:
   HOLDER_CONTAINER_NAME: holder
   HOLDER_IMAGE_TAG: watcher-image
   
-  DBHOST: notsecret
-  DBNAME: notsecret
-  DBUSER: secret
-  DBPASSWORD: secret
+  DBHOST: ${{ secrets.DB_HOST }}
+  DBNAME: ${{ secrets.DB_NAME }}
+  DBUSER: ${{ secrets.DB_USER }}
+  DBPASSWORD: ${{ secrets.DB_PASSWORD }}
 
 permissions:
   contents: read
