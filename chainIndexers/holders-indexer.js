@@ -1,6 +1,6 @@
 require('dotenv').config()
 const Web3 = require("web3");
-const fs = require("fs").promises;
+const fs = require("fs");
 const timers = require('timers/promises');
 const pgp = require("pg-promise")({});
 const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}:5432/${process.env.DBNAME}${process.env.USE_SSL === "true" ? "?ssl=true" : ""}`;
@@ -30,6 +30,7 @@ console.log("Starting Moonbeans Indexer for " + CHAIN_NAME);
 
 let methodSignatures = [];
 const trackActivity = true;
+let collections = JSON.parse(fs.readFileSync(__dirname + '/utils/collections.json'));
 
 /*****************
     WEB3 SETUP
@@ -70,7 +71,7 @@ async function startListening() {
     HOLDERS
 ******************/
 async function startListeningHolders() {
-    let collections = JSON.parse(await fs.readFile(__dirname + '/utils/collections.json'));
+    // let collections = JSON.parse(await fs.readFile(__dirname + '/utils/collections.json'));
 
     lastBlock = await web3.eth.getBlockNumber();
 
@@ -90,7 +91,7 @@ async function startListeningHolders() {
             endBlock = lastBlock;
         }
 
-        await handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collections); // TODO: REMOVE await
+        handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collections); // TODO: REMOVE await
     }
 }
 
@@ -112,7 +113,7 @@ async function handleCollectionTransfers(index, key, startBlock, endBlock, lastB
             await db.any('UPDATE "meta" SET "value" = $1, "timestamp" = $2 WHERE "name" = $3', [startBlock, Math.floor(Date.now() / 1000), 'last_block_' + key]);
 
             if (startBlock >= lastBlock) {
-                return; // TODO: REMOVE ME
+                // return; // TODO: REMOVE ME
                 endBlock = await web3.eth.getBlockNumber();
                 await sleep(120000);
             } else {
@@ -120,12 +121,12 @@ async function handleCollectionTransfers(index, key, startBlock, endBlock, lastB
                 if (endBlock > lastBlock) {
                     endBlock = lastBlock;
                 }
-                // await sleep(200); // TODO: UNCOMMENT ME (800 default)
+                await sleep(200); // TODO: UNCOMMENT ME (800 default)
             }
         }
     } catch (e) {
         console.log(e);
-        handleCollectionTransfers(index, key, startBlock, endBlock, collections);
+        handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collections);
     }
 }
 
