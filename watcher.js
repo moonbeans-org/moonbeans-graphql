@@ -20,9 +20,9 @@ http.createServer(async function (req, res) {
         }
     }
 
-    responseData['last_block_movr'] = parseInt(await fs.readFile("./chainIndexers/last_block_movr.txt"));
-    responseData['last_block_glmr'] = parseInt(await fs.readFile("./chainIndexers/last_block_glmr.txt"));
-    responseData['last_block_nova'] = parseInt(await fs.readFile("./chainIndexers/last_block_nova.txt"));
+    responseData['last_block_movr'] = parseInt(await fs.readFile("./chainIndexers/last_block_moonriver.txt"));
+    responseData['last_block_glmr'] = parseInt(await fs.readFile("./chainIndexers/last_block_moonbeam.txt"));
+    responseData['last_block_nova'] = parseInt(await fs.readFile("./chainIndexers/last_block_arbitrum_nova.txt"));
     
     res.write(JSON.stringify(responseData));
     res.end();

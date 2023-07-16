@@ -1,7 +1,5 @@
 require('dotenv').config()
 const Web3 = require("web3");
-const fs = require("fs").promises;
-const timers = require('timers/promises');
 const pgp = require("pg-promise")({});
 const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}:5432/${process.env.DBNAME}${process.env.USE_SSL === "true" ? "?ssl=true" : ""}`;
 const db = pgp(cn);

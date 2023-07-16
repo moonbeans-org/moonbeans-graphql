@@ -1,6 +1,6 @@
--- CREATE ROLE xxxxxx WITH LOGIN PASSWORD yyyyyy;
--- ALTER ROLE xxxxxx CREATEDB;
--- CREATE DATABASE zzzzzz;
+CREATE ROLE beansadmin WITH LOGIN PASSWORD p@ssw0rd;
+ALTER ROLE beansadmin CREATEDB;
+CREATE DATABASE test;
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -112,7 +112,7 @@ CREATE TABLE public.collections (
     "timestamp" numeric DEFAULT 0 NOT NULL, 
     "lastModifiedTimestamp" numeric default 0 NOT NULL,
     "lastModifiedTxHash" text, 
-    "isERC1155" boolean DEFAULT FALSE NOT NULL
+    "isERC1155" boolean DEFAULT FALSE NOT NULL,
     "lastProcessedBlock" numeric DEFAULT 0);
 ALTER TABLE public.collections OWNER TO beansadmin;
 
