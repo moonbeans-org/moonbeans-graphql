@@ -28,7 +28,7 @@ name: Deploy to Amazon ECS
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "v2", "v2-devops"]
 
 env:
   AWS_REGION: us-east-1
@@ -40,9 +40,13 @@ env:
   WATCHER_CONTAINER_NAME: watcher
   WATCHER_IMAGE_TAG: watcher-image
 
-  ECS_HOLDER_SERVICE: holder
-  HOLDER_CONTAINER_NAME: holder
-  HOLDER_IMAGE_TAG: watcher-image
+  # ECS_HOLDER_SERVICE: holder
+  # HOLDER_CONTAINER_NAME: holder
+  # HOLDER_IMAGE_TAG: watcher-image
+
+  # ECS_MOONRIVER_SERVICE: moonriver-indexer
+  # HOLDER_CONTAINER_NAME: moonriver-indexer
+  # HOLDER_MOONRIVER_TAG: moonriver-indexer-image
   
   DBHOST: ${{ secrets.DB_HOST }}
   DBNAME: ${{ secrets.DB_NAME }}
@@ -78,18 +82,25 @@ jobs:
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
-        # Build a docker container and
-        # push it to ECR so that it can
-        # be deployed to ECS.
+        # Environemnt setup for database access
         touch .env
         echo DBUSER=${DBUSER} >> .env
         echo DBPASS=${DBPASSWORD} >> .env
         echo DBHOST=${DBHOST} >> .env
         echo DBNAME=${DBNAME} >> .env
         echo USE_SSL=false >> .env
+
+        # Build watcher container and push to ECR
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$WATCHER_IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$WATCHER_IMAGE_TAG
         echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$WATCHER_IMAGE_TAG" >> $GITHUB_OUTPUT
+
+        # Build watcher container and push to ECR
+        # cd chainIndexers
+        # docker build --build-arg CHAIN_ARG=moonriver -t $ECR_REGISTRY/$ECR_REPOSITORY:$MOONRIVER_IMAGE_TAG .
+        # docker push $ECR_REGISTRY/$ECR_REPOSITORY:$MOONRIVER_IMAGE_TAG
+        # echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$MOONRIVER_IMAGE_TAG" >> $GITHUB_OUTPUT
+
 
     - name: Fill in the new image ID in the Amazon ECS task definition
       id: task-def
