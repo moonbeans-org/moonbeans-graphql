@@ -24,6 +24,7 @@
             }
           ],
           "essential": true,
+          "envFile": ".env",
           "logConfiguration": {
             "logDriver": "awslogs",
             "options": {
