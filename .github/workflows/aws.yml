@@ -93,8 +93,8 @@ jobs:
 
         # Build watcher container and push to ECR
         docker build -t $IMAGE_TAG .
-        docker tag $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG
-        docker tag $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:latest
+        docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG
+        docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:latest
         echo "image=$ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
