@@ -1,15 +1,12 @@
 {
   "family": "moonbeans-tasks",
-  "taskRoleArn": "ecsTaskExecutionRole",
-  "executionRoleArn": "ecsTaskExecutionRole",
-  "networkMode": "awsvpc",
+  "networkMode": "bridge",
   "containerDefinitions": [
       {
           "name": "watcher",
           "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/watcher:latest",
-          "cpu": 256,
-          "memory": 512,
-          "entryPoint": ["node", "watcher.js"],
+          "cpu": 512,
+          "memory": 1024,
           "portMappings": [
             {
               "containerPort": 3000,
