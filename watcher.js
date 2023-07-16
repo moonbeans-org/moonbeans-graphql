@@ -1,4 +1,5 @@
 require('dotenv').config()
+console.log(`postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}:5432/${process.env.DBNAME}`);
 const ConnectionFilterPlugin = require("postgraphile-plugin-connection-filter");
 const fs = require("fs").promises;
 const http = require("http");
