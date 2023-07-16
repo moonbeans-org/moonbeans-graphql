@@ -134,15 +134,18 @@ CREATE TABLE public.fills (
 ALTER TABLE public.fills OWNER TO beansadmin;
 
 CREATE TABLE public.holders (
+    "id" text NOT NULL PRIMARY KEY,
     "collectionId" text NOT NULL, 
     "tokenNumber" numeric NOT NULL, 
     "currentOwner" text NOT NULL, 
     "lastTransfer" numeric NOT NULL, 
     "chainName" text,
-    "balance" numeric NOT NULL,
-    PRIMARY KEY ("collectionId", "tokenNumber", "currentOwner")
+    "balance" numeric NOT NULL
 );
 ALTER TABLE public.holders OWNER TO beansadmin;
+
+CREATE INDEX holder_index ON public.holders ("collectionId", "currentOwner");
+CREATE INDEX owner_index ON public.holders ("currentOwner");
 
 CREATE TABLE public.meta (
     "name" text NOT NULL, 
@@ -161,7 +164,7 @@ CREATE TABLE public.chains (
 ALTER TABLE public.chains OWNER TO beansadmin;
 
 CREATE TABLE public.tokens (
-    "id" text NOT NULL, 
+    "id" text NOT NULL UNIQUE PRIMARY KEY, 
     "collectionId" text NOT NULL, 
     "tokenNumber" numeric NOT NULL, 
     "currentAsk" numeric DEFAULT 0, 
