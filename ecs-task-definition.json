@@ -9,6 +9,7 @@
           "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/watcher:latest",
           "cpu": 256,
           "memory": 512,
+          "command": ["node", "watcher.js"],
           "portMappings": [
             {
               "containerPort": 3000,
