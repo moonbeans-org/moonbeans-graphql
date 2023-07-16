@@ -9,19 +9,22 @@
           "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/watcher:latest",
           "cpu": 256,
           "memory": 512,
-          "command": ["node", "watcher.js"],
+          "entryPoint": ["node", "watcher.js"],
           "portMappings": [
             {
               "containerPort": 3000,
-              "hostPort": 3000
+              "hostPort": 3000,
+              "protocol": "tcp"
             },
             {
               "containerPort": 8080,
-              "hostPort": 8080
+              "hostPort": 8080,
+              "protocol": "tcp"
             },
             {
               "containerPort": 5432,
-              "hostPort": 5432
+              "hostPort": 5432,
+              "protocol": "tcp"
             }
           ],
           "essential": true,
@@ -34,9 +37,9 @@
           "logConfiguration": {
             "logDriver": "awslogs",
             "options": {
-              "awslogs-group": "watcher-logs",
+              "awslogs-group": "/ecs/watcher-task-definition",
               "awslogs-region": "us-east-1",
-              "awslogs-stream-prefix": "watcher"
+              "awslogs-stream-prefix": "ecs"
             }
           },
           "healthCheck": {
