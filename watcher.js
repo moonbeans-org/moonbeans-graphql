@@ -4,7 +4,7 @@ const fs = require("fs").promises;
 const http = require("http");
 const { postgraphile } = require("postgraphile");
 const pgp = require("pg-promise")({});
-const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}/${process.env.DBNAME}`;
+const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}:5432/${process.env.DBNAME}`;
 const db = pgp(cn);
 
 //Health Check & Convenience Endpoints
