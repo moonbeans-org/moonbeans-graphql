@@ -1,0 +1,39 @@
+{
+  "family": "moonbeans-tasks",
+  "taskRoleArn": "ecsTaskExecutionRole",
+  "executionRoleArn": "ecsTaskExecutionRole",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+      {
+          "name": "watcher",
+          "image": "watcher-image",
+          "cpu": 256,
+          "memory": 512,
+          "portMappings": [
+            {
+              "containerPort": 3000,
+              "hostPort": 3000
+            }
+          ],
+          "essential": true,
+          "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+              "awslogs-group": "watcher-logs",
+              "awslogs-region": "us-east-1",
+              "awslogs-stream-prefix": "watcher"
+            }
+          },
+          "healthCheck": {
+              "command": [
+                "CMD-SHELL",
+                "curl -f http://localhost:8080/ || exit 1"
+              ],
+              "interval": 30,
+              "timeout": 10,
+              "retries": 5,
+              "startPeriod": 60
+          }
+      }
+  ]
+}
