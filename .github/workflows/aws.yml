@@ -32,21 +32,20 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECR_REPOSITORY: moonbeans
   ECS_CLUSTER: moonbeans
   ECS_TASK_DEFINITION: ./ecs-task-definition.json
   
+  ECR_WATCHER_REPOSITORY: watcher
   ECS_WATCHER_SERVICE: watcher
   WATCHER_CONTAINER_NAME: watcher
-  WATCHER_IMAGE_TAG: watcher-image
 
+  # ECR_HOLDER_REPOSITORY: holder
   # ECS_HOLDER_SERVICE: holder
   # HOLDER_CONTAINER_NAME: holder
-  # HOLDER_IMAGE_TAG: watcher-image
 
-  # ECS_MOONRIVER_SERVICE: moonriver-indexer
-  # HOLDER_CONTAINER_NAME: moonriver-indexer
-  # HOLDER_MOONRIVER_TAG: moonriver-indexer-image
+  # ECR_HOLDER_REPOSITORY: moonriver
+  # ECS_MOONRIVER_SERVICE: moonriver
+  # MOONRIVER_CONTAINER_NAME: moonriver
   
   DBHOST: ${{ secrets.DB_HOST }}
   DBNAME: ${{ secrets.DB_NAME }}
@@ -81,6 +80,8 @@ jobs:
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        IMAGE_TAG: ${{ github.sha }}
+
       run: |
         # Environemnt setup for database access
         touch .env
@@ -91,15 +92,15 @@ jobs:
         echo USE_SSL=false >> .env
 
         # Build watcher container and push to ECR
-        docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$WATCHER_IMAGE_TAG .
-        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$WATCHER_IMAGE_TAG
-        echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$WATCHER_IMAGE_TAG" >> $GITHUB_OUTPUT
+        docker build -t $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG .
+        docker push $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG
+        echo "image=$ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
         # Build watcher container and push to ECR
         # cd chainIndexers
-        # docker build --build-arg CHAIN_ARG=moonriver -t $ECR_REGISTRY/$ECR_REPOSITORY:$MOONRIVER_IMAGE_TAG .
-        # docker push $ECR_REGISTRY/$ECR_REPOSITORY:$MOONRIVER_IMAGE_TAG
-        # echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$MOONRIVER_IMAGE_TAG" >> $GITHUB_OUTPUT
+        # docker build --build-arg CHAIN_ARG=moonriver -t $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG .
+        # docker push $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG
+        # echo "image=$ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
 
     - name: Fill in the new image ID in the Amazon ECS task definition
