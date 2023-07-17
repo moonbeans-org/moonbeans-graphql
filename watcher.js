@@ -1,12 +1,14 @@
 require('dotenv').config()
-console.log(`postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}:5432/${process.env.DBNAME}`);
 const ConnectionFilterPlugin = require("postgraphile-plugin-connection-filter");
 const fs = require("fs").promises;
 const http = require("http");
 const { postgraphile } = require("postgraphile");
 const pgp = require("pg-promise")({});
+console.log('setting up db connection...');
 const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}:5432/${process.env.DBNAME}`;
+console.log(cn);
 const db = pgp(cn);
+console.log('db connection established...');
 
 //Health Check & Convenience Endpoints
 http.createServer(async function (req, res) {
