@@ -9,6 +9,19 @@ const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env
 console.log(cn);
 const db = pgp(cn);
 console.log('db connection established...');
+console.log('port env variable: ' + process.env.PORT);
+
+console.log('try querying it just for fucks sake.');
+let lastBlocksQuery = await db.manyOrNone('SELECT name, value, timestamp FROM "meta"');
+if (lastBlocksQuery.length > 0) {
+    for (let row of lastBlocksQuery) {
+        responseData[row['name']] = row['value'];
+    }
+}
+
+responseData['last_block_movr'] = parseInt(await fs.readFile("./chainIndexers/last_block_moonriver.txt"));
+responseData['last_block_glmr'] = parseInt(await fs.readFile("./chainIndexers/last_block_moonbeam.txt"));
+console.log(JSON.stringify(responseData));
 
 //Health Check & Convenience Endpoints
 http.createServer(async function (req, res) {
