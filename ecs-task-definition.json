@@ -17,11 +17,6 @@
               "containerPort": 8080,
               "hostPort": 8080,
               "protocol": "tcp"
-            },
-            {
-              "containerPort": 5432,
-              "hostPort": 5432,
-              "protocol": "tcp"
             }
           ],
           "essential": true,
@@ -38,16 +33,6 @@
               "awslogs-region": "us-east-1",
               "awslogs-stream-prefix": "ecs"
             }
-          },
-          "healthCheck": {
-              "command": [
-                "CMD-SHELL",
-                "curl -f http://localhost:8080/ || exit 1"
-              ],
-              "interval": 30,
-              "timeout": 10,
-              "retries": 5,
-              "startPeriod": 60
           }
       }
   ]
