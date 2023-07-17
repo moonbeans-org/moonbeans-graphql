@@ -11,7 +11,7 @@ COPY package.json package-lock.json* ./
 RUN npm install
 
 # Copy the chain indexers package
-COPY chainIndexers ./chainIndexers
+COPY chainIndexers/last_block* ./chainIndexers/
 
 # Copy the watcher
 COPY watcher.js ./
