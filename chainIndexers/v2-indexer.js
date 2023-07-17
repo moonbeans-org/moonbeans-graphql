@@ -1,5 +1,7 @@
 require('dotenv').config()
 const Web3 = require("web3");
+const fs = require("fs").promises;
+const http = require("http");
 const pgp = require("pg-promise")({});
 const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}:5432/${process.env.DBNAME}${process.env.USE_SSL === "true" ? "?ssl=true" : ""}`;
 const db = pgp(cn);
@@ -113,7 +115,29 @@ async function startListening() {
     startListeningMarketplace();
 }
 
+/*****************
+   HEALTH CHECK
+******************/
+//Health Check & Convenience Endpoints
+http.createServer(async function (req, res) {
+    console.log('Checking health...');
+    res.writeHead(200, {'Content-Type': 'application/json'});
 
+    let responseData = {};
+
+    let lastBlocksQuery = await db.manyOrNone('SELECT name, value, timestamp FROM "meta"');
+    if (lastBlocksQuery.length > 0) {
+        for (let row of lastBlocksQuery) {
+            responseData[row['name']] = row['value'];
+        }
+    }
+
+    responseData['last_block'] = parseInt(await fs.readFile("./last_block_" + chainObject.chain_name + ".txt"));
+
+    res.write(JSON.stringify(responseData));
+    res.end();
+    console.log('Health check completed!');
+}).listen(8080);
 
 /*****************
     MARKETPLACE

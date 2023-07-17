@@ -33,8 +33,8 @@ on:
 env:
   AWS_REGION: us-east-1
   ECS_CLUSTER: moonbeans
-  ECS_TASK_DEFINITION: ./ecs-task-definition.json
   
+  WATCHER_ECS_TASK_DEFINITION: ./ecs-task-definition.json
   ECR_WATCHER_REPOSITORY: watcher
   ECS_WATCHER_SERVICE: watcher
   WATCHER_CONTAINER_NAME: watcher
@@ -43,9 +43,14 @@ env:
   # ECS_HOLDER_SERVICE: holder
   # HOLDER_CONTAINER_NAME: holder
 
-  # ECR_HOLDER_REPOSITORY: moonriver
-  # ECS_MOONRIVER_SERVICE: moonriver
-  # MOONRIVER_CONTAINER_NAME: moonriver
+  INDEXER_ECS_TASK_DEFINITION: ./chainIndexers/ecs-task-definition.json
+  INDEXER_SERVICE: indexer
+
+  ECR_MOONRIVER_REPOSITORY: moonriver
+  MOONRIVER_CONTAINER_NAME: moonriver-indexer
+
+  ECR_MOONBEAM_REPOSITORY: moonbeam
+  MOONBEAM_CONTAINER_NAME: moonbeam-indexer
   
   DBHOST: ${{ secrets.DB_HOST }}
   DBNAME: ${{ secrets.DB_NAME }}
@@ -102,27 +107,61 @@ jobs:
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:latest
-        echo "image=$ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        echo "watcher-image=$ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-        # Build watcher container and push to ECR
-        # cd chainIndexers
-        # docker build --build-arg CHAIN_ARG=moonriver -t $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG .
-        # docker push $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG
-        # echo "image=$ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        # Build indexers and push to ECR
+        cd chainIndexers
+        docker build --build-arg CHAIN_ARG=moonriver -t $IMAGE_TAG .
+        docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG
+        docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:latest
+        echo "moonriver-image=$ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+        docker build --build-arg CHAIN_ARG=moonbeam -t $IMAGE_TAG .
+        docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:$IMAGE_TAG
+        docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:latest
+        echo "moonbeam-image=$ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
 
-    - name: Fill in the new image ID in the Amazon ECS task definition
-      id: task-def
+    - name: Fill in the new image ID for the Watcher task definition
+      id: watcher-task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ${{ env.ECS_TASK_DEFINITION }}
+        task-definition: ${{ env.WATCHER_ECS_TASK_DEFINITION }}
         container-name: ${{ env.WATCHER_CONTAINER_NAME }}
-        image: ${{ steps.build-image.outputs.image }}
+        image: ${{ steps.build-image.outputs.watcher-image }}
 
-    - name: Deploy Amazon ECS task definition
+    - name: Deploy Watcher Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
-        task-definition: ${{ steps.task-def.outputs.task-definition }}
+        task-definition: ${{ steps.watcher-task-def.outputs.task-definition }}
         service: ${{ env.ECS_WATCHER_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+
+    - name: Fill in the new image ID for the Moonriver Indexer task definition
+      id: indexer-task-def-1
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ env.INDEXER_ECS_TASK_DEFINITION }}
+        container-name: ${{ env.MOONRIVER_CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.moonriver-image }}
+
+    - name: Fill in the new image ID for the Moonbeam Indexer task definition
+      id: indexer-task-def-2
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ steps.indexer-task-def-1.outputs.task-definition }}
+        container-name: ${{ env.MOONBEAM_CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.moonbeam-image }}
+
+    - name: Deploy Indexer Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.indexer-task-def-2.outputs.task-definition }}
+        service: ${{ env.ECS_INDEXER_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: false

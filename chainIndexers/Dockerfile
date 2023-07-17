@@ -18,4 +18,4 @@ ENV CHAIN=$CHAIN_ARG
 COPY . .
 
 # Run the Node.js script
-CMD ["bash", "start-indexer-by-chain.sh"]
+CMD ["/bin/sh", "start-indexer-by-chain.sh"]
