@@ -4,21 +4,8 @@ const fs = require("fs").promises;
 const http = require("http");
 const { postgraphile } = require("postgraphile");
 const pgp = require("pg-promise")({});
-console.log('setting up db connection...');
 const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}:5432/${process.env.DBNAME}`;
-console.log(cn);
 const db = pgp(cn);
-console.log('db connection established...');
-console.log('port env variable: ' + process.env.PORT);
-
-console.log('try querying it just for fucks sake.');
-db.any('SELECT 1')
-  .then(() => {
-    console.log('Successfully connected to the database.');
-  })
-  .catch((error) => {
-    console.error('Failed to connect to the database:', error);
-  });
 
 //Health Check & Convenience Endpoints
 http.createServer(async function (req, res) {
@@ -41,9 +28,6 @@ http.createServer(async function (req, res) {
     res.end();
     console.log('Health check completed!');
 }).listen(8080);
-
-
-
 
 //GraphQL server
 http.createServer(
