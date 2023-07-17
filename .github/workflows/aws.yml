@@ -51,6 +51,9 @@ env:
   DBNAME: ${{ secrets.DB_NAME }}
   DBUSER: ${{ secrets.DB_USER }}
   DBPASSWORD: ${{ secrets.DB_PASSWORD }}
+  PINATA_TOKEN: ${{ secrets.PINATA_TOKEN }}
+  JUSTCORS_TOKEN: ${{ secrets.JUSTCORS_TOKEN }}
+
 
 permissions:
   contents: read
@@ -90,6 +93,8 @@ jobs:
         echo DBHOST=${DBHOST} >> .env
         echo DBNAME=${DBNAME} >> .env
         echo USE_SSL=false >> .env
+        echo PINATA_TOKEN=${PINATA_TOKEN} >> .env
+        echo JUSTCORS_TOKEN=${JUSTCORS_TOKEN} >> .env
 
         # Build watcher container and push to ECR
         docker build -t $IMAGE_TAG .
