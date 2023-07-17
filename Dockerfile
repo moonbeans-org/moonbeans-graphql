@@ -10,8 +10,14 @@ COPY package.json package-lock.json* ./
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the project files to the working directory
-COPY . .
+# Copy the chain indexers package
+COPY chainIndexers ./chainIndexers
+
+# Copy the watcher
+COPY watcher.js ./
+
+# Copy the .env
+COPY .env ./
 
 # Expose ports 8080 and 3000
 EXPOSE 8080 3000

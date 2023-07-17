@@ -1,6 +1,6 @@
 {
   "family": "moonbeans-tasks",
-  "networkMode": "awsvpc",
+  "networkMode": "bridge",
   "containerDefinitions": [
       {
           "name": "watcher",
