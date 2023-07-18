@@ -110,6 +110,7 @@ jobs:
         echo "watcher-image=$ECR_REGISTRY/$ECR_WATCHER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
         # Build indexers and push to ECR
+        cp .env chainIndexers/.env
         cd chainIndexers
         docker build --build-arg CHAIN_ARG=moonriver -t $IMAGE_TAG .
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG

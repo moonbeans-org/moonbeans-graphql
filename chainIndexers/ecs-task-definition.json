@@ -1,5 +1,5 @@
 {
-  "family": "moonbeans-tasks",
+  "family": "moonbeans-indexer-tasks",
   "networkMode": "bridge",
   "containerDefinitions": [
       {
@@ -22,17 +22,7 @@
               "awslogs-region": "us-east-1",
               "awslogs-stream-prefix": "ecs"
             }
-          },
-          "healthCheck": {
-            "command": [
-                "CMD-SHELL",
-                "curl -f http://localhost:8080/ || exit 1"
-            ],
-            "interval": 10,
-            "timeout": 10,
-            "retries": 3,
-            "startPeriod": 30
-        }
+          }
       },
       {
         "name": "moonbeam-indexer",
@@ -54,17 +44,7 @@
             "awslogs-region": "us-east-1",
             "awslogs-stream-prefix": "ecs"
           }
-        },
-        "healthCheck": {
-          "command": [
-              "CMD-SHELL",
-              "curl -f http://localhost:8080/ || exit 1"
-          ],
-          "interval": 10,
-          "timeout": 10,
-          "retries": 3,
-          "startPeriod": 30
-      }
+        }
     }
   ]
 }
