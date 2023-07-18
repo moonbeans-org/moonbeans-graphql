@@ -44,7 +44,7 @@ env:
   # HOLDER_CONTAINER_NAME: holder
 
   INDEXER_ECS_TASK_DEFINITION: ./chainIndexers/ecs-task-definition.json
-  INDEXER_SERVICE: indexer
+  ECS_INDEXER_SERVICE: indexer
 
   ECR_MOONRIVER_REPOSITORY: moonriver
   MOONRIVER_CONTAINER_NAME: moonriver-indexer
@@ -165,4 +165,4 @@ jobs:
         task-definition: ${{ steps.indexer-task-def-2.outputs.task-definition }}
         service: ${{ env.ECS_INDEXER_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
-        wait-for-service-stability: false
+        wait-for-service-stability: true
