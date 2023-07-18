@@ -7,7 +7,7 @@
           "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/moonriver:latest",
           "cpu": 512,
           "memory": 1024,
-          "essential": false,
+          "essential": true,
           "portMappings": [
             {
               "containerPort": 8080,
@@ -29,7 +29,7 @@
         "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/moonbeam:latest",
         "cpu": 512,
         "memory": 1024,
-        "essential": false,
+        "essential": true,
         "portMappings": [
           {
             "containerPort": 8080,
