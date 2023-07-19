@@ -173,7 +173,7 @@ async function handle721Transfers(collection, startBlock, endBlock) {
         //Update token?
         try {
             let token = await db.oneOrNone('SELECT * FROM "tokens" WHERE "id" = $1', [`${collection['contractAddress']}-${tokenId}`]);
-            if (!token?.['tokenURI']) {
+            if (!token?.['tokenURI'] && collection['contractAddress'] !== "0x7B2e778453AB3a0D946c4620fB38A0530A434e15" && collection['contractAddress'] !== "0x08716e418e68564C96b68192E985762740728018") {
                 await fetchAndStoreTokenMetadata(collection, contract, collection['contractAddress'], tokenId, row['timestamp']);
             }
         } catch {
