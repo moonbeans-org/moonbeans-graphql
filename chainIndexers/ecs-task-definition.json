@@ -5,8 +5,8 @@
     {
       "name": "moonriver-indexer",
       "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/moonriver:latest",
-      "cpu": 512,
-      "memory": 1024,
+      "cpu": 256,
+      "memory": 512,
       "essential": true,
       "portMappings": [
         {
@@ -27,8 +27,8 @@
     {
       "name": "moonbeam-indexer",
       "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/moonbeam:latest",
-      "cpu": 512,
-      "memory": 1024,
+      "cpu": 256,
+      "memory": 512,
       "essential": true,
       "portMappings": [
         {
@@ -49,8 +49,8 @@
     {
       "name": "moonriver-holder",
       "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/moonriver-holder:latest",
-      "cpu": 512,
-      "memory": 1024,
+      "cpu": 256,
+      "memory": 512,
       "essential": true,
       "portMappings": [
         {
@@ -71,8 +71,8 @@
     {
       "name": "moonbeam-holder",
       "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/moonbeam-holder:latest",
-      "cpu": 512,
-      "memory": 1024,
+      "cpu": 256,
+      "memory": 512,
       "essential": true,
       "portMappings": [
         {
