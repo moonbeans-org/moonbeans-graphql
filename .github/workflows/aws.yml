@@ -134,14 +134,14 @@ jobs:
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONRIVER_HOLDER_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_MOONRIVER_HOLDER_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_MOONRIVER_HOLDER_REPOSITORY:latest
-        echo "moonriver-image=$ECR_REGISTRY/$ECR_MOONRIVER_HOLDER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        echo "moonriver-holder-image=$ECR_REGISTRY/$ECR_MOONRIVER_HOLDER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
         docker build --build-arg CHAIN_ARG=moonbeam -t $IMAGE_TAG .
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:$IMAGE_TAG
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:latest
-        echo "moonbeam-image=$ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+        echo "moonbeam-holder-image=$ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
     - name: Fill in the new image ID for the Watcher task definition
       id: watcher-task-def
