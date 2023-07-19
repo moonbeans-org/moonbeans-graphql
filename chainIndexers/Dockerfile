@@ -12,7 +12,9 @@ RUN npm install
 
 # Get CHAIN arg from docker build command and set as env variable
 ARG CHAIN_ARG=invalid
+ARG SCRIPT_ARG=invalid
 ENV CHAIN=$CHAIN_ARG
+ENV SCRIPT=$SCRIPT_ARG
 
 # Copy the rest of the project files to the working directory
 COPY . .

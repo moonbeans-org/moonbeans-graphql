@@ -115,28 +115,28 @@ jobs:
         # Build indexers and push to ECR
         cp .env chainIndexers/.env
         cd chainIndexers
-        docker build --build-arg CHAIN_ARG=moonriver -t $IMAGE_TAG .
+        docker build --build-arg CHAIN_ARG=moonriver --build-arg SCRIPT_ARG=indexer -t $IMAGE_TAG .
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:latest
         echo "moonriver-image=$ECR_REGISTRY/$ECR_MOONRIVER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-        docker build --build-arg CHAIN_ARG=moonbeam -t $IMAGE_TAG .
+        docker build --build-arg CHAIN_ARG=moonbeam --build-arg SCRIPT_ARG=indexer -t $IMAGE_TAG .
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONBEAM_HOLDER_REPOSITORY:$IMAGE_TAG
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONBEAM_HOLDER_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_MOONBEAM_HOLDER_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_MOONBEAM_HOLDER_REPOSITORY:latest
         echo "moonbeam-image=$ECR_REGISTRY/$ECR_MOONBEAM_HOLDER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-        docker build --build-arg CHAIN_ARG=moonriver -t $IMAGE_TAG .
+        docker build --build-arg CHAIN_ARG=moonriver --build-arg SCRIPT_ARG=holder -t $IMAGE_TAG .
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONRIVER_HOLDER_REPOSITORY:$IMAGE_TAG
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONRIVER_HOLDER_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_MOONRIVER_HOLDER_REPOSITORY:$IMAGE_TAG
         docker push $ECR_REGISTRY/$ECR_MOONRIVER_HOLDER_REPOSITORY:latest
         echo "moonriver-holder-image=$ECR_REGISTRY/$ECR_MOONRIVER_HOLDER_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
-        docker build --build-arg CHAIN_ARG=moonbeam -t $IMAGE_TAG .
+        docker build --build-arg CHAIN_ARG=moonbeam --build-arg SCRIPT_ARG=holder -t $IMAGE_TAG .
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:$IMAGE_TAG
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:latest
         docker push $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:$IMAGE_TAG
