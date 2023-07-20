@@ -36,7 +36,7 @@ env:
   
   WATCHER_ECS_TASK_DEFINITION: ./ecs-task-definition.json
   ECR_WATCHER_REPOSITORY: watcher
-  ECS_WATCHER_SERVICE: watcher
+  ECS_WATCHER_SERVICE: watcher-auto
   WATCHER_CONTAINER_NAME: watcher
 
 
