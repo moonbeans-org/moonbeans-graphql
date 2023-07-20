@@ -62,7 +62,7 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/moonriver-holder-task-definition",
+          "awslogs-group": "/ecs/moonriver-holder",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
@@ -84,7 +84,7 @@
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/moonbeam-holder-task-definition",
+          "awslogs-group": "/ecs/moonbeam-holder",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
