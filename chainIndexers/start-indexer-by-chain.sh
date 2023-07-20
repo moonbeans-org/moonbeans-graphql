@@ -1,7 +1,9 @@
 #!/bin/bash
 
-if [ "$CHAIN" != "moonbeam" ] && [ "$CHAIN" != "moonriver" ] || [ "$SCRIPT" != "holder" ] && [ "$SCRIPT" != "indexer" ]; then
-    echo "Invalid chain or script"
+if [ "$CHAIN" != "moonbeam" ] && [ "$CHAIN" != "moonriver" ]; then
+    echo "Invalid chain"
+elif [ "$SCRIPT" != "holder" ] && [ "$SCRIPT" != "indexer" ]; then
+    echo "Invalid Script"
 else
     if [ "$SCRIPT" = "indexer" ]; then
         node v2-indexer.js -c "$CHAIN"
