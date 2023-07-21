@@ -40,8 +40,11 @@ env:
   WATCHER_CONTAINER_NAME: watcher
 
 
-  INDEXER_ECS_TASK_DEFINITION: ./chainIndexers/ecs-task-definition.json
+  INDEXER_ECS_TASK_DEFINITION: ./chainIndexers/indexer-ecs-task-definition.json
   ECS_INDEXER_SERVICE: indexer
+
+  HOLDER_ECS_TASK_DEFINITION: ./chainIndexers/holder-ecs-task-definition.json
+  ECS_HOLDER_SERVICE: holder
 
   ECR_MOONRIVER_REPOSITORY: moonriver
   MOONRIVER_CONTAINER_NAME: moonriver-indexer
@@ -175,26 +178,34 @@ jobs:
         container-name: ${{ env.MOONBEAM_CONTAINER_NAME }}
         image: ${{ steps.build-image.outputs.moonbeam-image }}
 
-    - name: Fill in the new image ID for the Moonriver Holder Indexer task definition
-      id: indexer-task-def-3
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: ${{ steps.indexer-task-def-2.outputs.task-definition }}
-        container-name: ${{ env.MOONRIVER_HOLDER_CONTAINER_NAME }}
-        image: ${{ steps.build-image.outputs.moonriver-holder-image }}
-
-    - name: Fill in the new image ID for the Moonbeam Holder Indexer task definition
-      id: indexer-task-def-4
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: ${{ steps.indexer-task-def-3.outputs.task-definition }}
-        container-name: ${{ env.MOONBEAM_HOLDER_CONTAINER_NAME }}
-        image: ${{ steps.build-image.outputs.moonbeam-holder-image }}
-
     - name: Deploy Indexer Amazon ECS task definition
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
-        task-definition: ${{ steps.indexer-task-def-4.outputs.task-definition }}
+        task-definition: ${{ steps.indexer-task-def-2.outputs.task-definition }}
         service: ${{ env.ECS_INDEXER_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: true
+
+    - name: Fill in the new image ID for the Moonriver Holder task definition
+      id: holder-task-def-1
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ steps.holder-task-def-1.outputs.task-definition }}
+        container-name: ${{ env.MOONRIVER_HOLDER_CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.moonriver-holder-image }}
+
+    - name: Fill in the new image ID for the Moonbeam Holder task definition
+      id: holder-task-def-2
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ steps.holder-task-def-1.outputs.task-definition }}
+        container-name: ${{ env.MOONBEAM_HOLDER_CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.moonbeam-holder-image }}
+
+    - name: Deploy Holder Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.holder-task-def-2.outputs.task-definition }}
+        service: ${{ env.ECS_HOLDER_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
