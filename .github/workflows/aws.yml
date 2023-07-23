@@ -190,7 +190,7 @@ jobs:
       id: holder-task-def-1
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: ${{ steps.holder-task-def-1.outputs.task-definition }}
+        task-definition: ${{ env.HOLDER_ECS_TASK_DEFINITION }}
         container-name: ${{ env.MOONRIVER_HOLDER_CONTAINER_NAME }}
         image: ${{ steps.build-image.outputs.moonriver-holder-image }}
 
