@@ -184,7 +184,7 @@ jobs:
         task-definition: ${{ steps.indexer-task-def-2.outputs.task-definition }}
         service: ${{ env.ECS_INDEXER_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
-        wait-for-service-stability: true
+        wait-for-service-stability: false
 
     - name: Fill in the new image ID for the Moonriver Holder task definition
       id: holder-task-def-1
@@ -208,4 +208,4 @@ jobs:
         task-definition: ${{ steps.holder-task-def-2.outputs.task-definition }}
         service: ${{ env.ECS_HOLDER_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
-        wait-for-service-stability: true
+        wait-for-service-stability: false
