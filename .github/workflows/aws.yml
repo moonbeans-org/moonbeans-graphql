@@ -185,6 +185,7 @@ jobs:
         service: ${{ env.ECS_INDEXER_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
+        force-new-deployment: true
 
     - name: Fill in the new image ID for the Moonriver Holder task definition
       id: holder-task-def-1
@@ -209,3 +210,4 @@ jobs:
         service: ${{ env.ECS_HOLDER_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
+        force-new-deployment: true
