@@ -28,9 +28,8 @@ let blockTimestamps = {};
 
 console.log("Starting Moonbeans Indexer for " + CHAIN_NAME);
 
-let methodSignatures = [];
-const trackActivity = true;
 let collections = JSON.parse(fs.readFileSync(__dirname + '/utils/collections.json'));
+let noIndexList = ['0xc433f820467107bc5176b95f3a58248C4332F8DE', '0x7B2e778453AB3a0D946c4620fB38A0530A434e15', '0x08716e418e68564C96b68192E985762740728018', '0x7BCbA68680a1178A84a816B6B2a6Aa191eAA4734'];
 
 /*****************
     WEB3 SETUP
@@ -71,15 +70,18 @@ async function startListening() {
     HOLDERS
 ******************/
 async function startListeningHolders() {
-    // let collections = JSON.parse(await fs.readFile(__dirname + '/utils/collections.json'));
 
     lastBlock = await web3.eth.getBlockNumber();
 
     for (let index in collections) {
+        let collection = collections[index];
+        if (collection['chain'] !== CHAIN_NAME || collection['contractAddress'] === '0xfEd9e29b276C333b2F11cb1427142701d0D9f7bf') continue;
+
         // if (index < 0 || index > 20) continue; // TODO: ?? handle this
-        let key = collections[index]?.collectionId;
+
+        let key = collection?.collectionId;
         let startBlockQuery = await db.oneOrNone('SELECT "value" FROM "meta" WHERE "name" = $1', ['last_block_' + key]);
-        let startBlock = collections[index]?.startBlock ?? 0;
+        let startBlock = collection?.startBlock ?? 0;
         if (startBlockQuery === null) {
             await db.any('INSERT INTO "meta" ("name", "value", "timestamp") VALUES ($1, $2, $3)', ['last_block_' + key, startBlock, Math.floor(Date.now() / 1000)]);
         } else {
@@ -87,21 +89,18 @@ async function startListeningHolders() {
         }
 
         let endBlock = startBlock + blockBatch;
+
         if (endBlock > lastBlock) {
             endBlock = lastBlock;
         }
-
-        handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collections); // TODO: REMOVE await
     }
 }
 
 
-async function handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collections) {
-    let collection = collections[index];
-    if (collection['chain'] !== CHAIN_NAME || collection['contractAddress'] === '0xfEd9e29b276C333b2F11cb1427142701d0D9f7bf') return;
+async function handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collection) {
     try {
         while (true) {
-            console.log('Getting Transfer events for ' + collection['title'] + ' (' + collection['contractAddress'] + ') ' + startBlock + '/' + endBlock);
+            console.log('Getting Transfer events for ' + collection['title'] + ' (' + collection['contractAddress'] + ') ' + startBlock + '-' + endBlock + '/' + lastBlock);
 
             if (collection?.['isERC1155'] ?? false) {
                 await handle1155Transfers(collection, startBlock, endBlock);
@@ -117,7 +116,7 @@ async function handleCollectionTransfers(index, key, startBlock, endBlock, lastB
                 endBlock = await web3.eth.getBlockNumber();
                 await sleep(120000);
             } else {
-                endBlock += blockBatch;
+                endBlock = startBlock + blockBatch;
                 if (endBlock > lastBlock) {
                     endBlock = lastBlock;
                 }
@@ -125,8 +124,9 @@ async function handleCollectionTransfers(index, key, startBlock, endBlock, lastB
             }
         }
     } catch (e) {
-        console.log(e);
-        handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collections);
+        console.log(e?.message, `error collecting transfers for ${collection['title']}, sleeping for 2 secs and retrying. ${startBlock} ${endBlock} ${lastBlock}`);
+        await sleep(2000);
+        handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collection);
     }
 }
 
@@ -145,6 +145,14 @@ async function handle721Transfers(collection, startBlock, endBlock) {
             continue;
         }
 
+        row['transactionEventHash'] = row['transactionHash'] + "-" + row['transactionIndex'] + "-" + row['logIndex'] + "-" + row['blockNumber'];
+
+        const txrow = await db.oneOrNone('SELECT * FROM "transactions" WHERE "id" = $1', [row['transactionEventHash']]);
+
+        if (txrow !== null) {
+            continue;
+        }
+
         if (row['blockNumber'] in blockTimestamps) {
             row['timestamp'] = blockTimestamps[row['blockNumber']]
         } else {
@@ -158,27 +166,36 @@ async function handle721Transfers(collection, startBlock, endBlock) {
         const newId = `${collection['contractAddress']}-${tokenId}-${to}`;
 
         //Update Holders
-        let newOwner = await db.oneOrNone('SELECT * FROM "holders" WHERE "id" = $1', 
-            [newId]);
+        let newOwner = await db.oneOrNone('SELECT * FROM "holders" WHERE "id" = $1', [newId]);
+        let oldOwner = await db.oneOrNone('SELECT * FROM "holders" WHERE "id" = $1', [oldId]);
+
         if (newOwner === null) {
             await db.any('INSERT INTO "holders" ("id", "collectionId", "tokenNumber", "currentOwner", "lastTransfer", "chainName", "balance") VALUES ($1, $2, $3, $4, $5, $6, $7)', 
                 [newId, collection['contractAddress'], tokenId, to, row['timestamp'], CHAIN_NAME, 1]);
         } else {
             await db.any('UPDATE "holders" SET "currentOwner" = $1, "lastTransfer" = $2, "balance" = $3 WHERE "id" = $4 ', 
                 [to, row['timestamp'], 1, newId]);
-            await db.any('UPDATE "holders" SET "balance" = $1 WHERE "id" = $2', 
-                [0, oldId]);
+        }
+
+        //old owner should never be null.
+        if (oldOwner === null) {
+            await db.any('INSERT INTO "holders" ("id", "collectionId", "tokenNumber", "currentOwner", "lastTransfer", "chainName", "balance") VALUES ($1, $2, $3, $4, $5, $6, $7)', 
+                [oldId, collection['contractAddress'], tokenId, from, row['timestamp'], CHAIN_NAME, 0]);
+        } else {
+            await db.any('UPDATE "holders" SET "balance" = $1 WHERE "id" = $2', [0, oldId]);
         }
 
         //Update token?
         try {
             let token = await db.oneOrNone('SELECT * FROM "tokens" WHERE "id" = $1', [`${collection['contractAddress']}-${tokenId}`]);
-            if (!token?.['tokenURI'] && collection['contractAddress'] !== "0x7B2e778453AB3a0D946c4620fB38A0530A434e15" && collection['contractAddress'] !== "0x08716e418e68564C96b68192E985762740728018") {
+            if (!token?.['tokenURI'] && !noIndexList.includes(collection['contractAddress'])) {
                 await fetchAndStoreTokenMetadata(collection, contract, collection['contractAddress'], tokenId, row['timestamp']);
             }
         } catch {
             console.log(`Failed attempting to fetch and store token metadata for ${collection['contractAddress']}-${tokenId}. Continuing...`);
         }
+
+        await markTransfer(row);
 
 
     }
@@ -187,7 +204,6 @@ async function handle721Transfers(collection, startBlock, endBlock) {
 
 async function handle1155Transfers(collection, startBlock, endBlock) {
     let contract = new web3.eth.Contract(ABIS.NFT1155, collection['contractAddress']);
-
     let singleEvents = await contract.getPastEvents("TransferSingle", { 'fromBlock': startBlock, 'toBlock': endBlock });
     let batchEvents = await contract.getPastEvents("TransferBatch", { 'fromBlock': startBlock, 'toBlock': endBlock });
     batchEvents = batchEvents.map(event => ({ ...event, batchTransfer: true}));
@@ -198,6 +214,14 @@ async function handle1155Transfers(collection, startBlock, endBlock) {
 
     for (let row of sortedEvents) {
         if (row.removed) {
+            continue;
+        }
+
+        row['transactionEventHash'] = row['transactionHash'] + "-" + row['transactionIndex'] + "-" + row['logIndex'] + "-" + row['blockNumber'];
+
+        const txrow = await db.oneOrNone('SELECT * FROM "transfers" WHERE "id" = $1', [row['transactionEventHash']]);
+
+        if (txrow !== null) {
             continue;
         }
 
@@ -218,6 +242,8 @@ async function handle1155Transfers(collection, startBlock, endBlock) {
             const { operator, from, to, id, value } = row['returnValues'];
             await handleSingleTransfer(row, collection, contract, from, to, id, value);
         }
+
+        await markTransfer(row);
     }
 }
 
@@ -228,14 +254,24 @@ async function handleSingleTransfer(row, collection, contract, from, to, tokenId
     const newId = `${collection['contractAddress']}-${tokenId}-${to}`;
 
     //Update Holders
-    let newOwner = await db.oneOrNone('SELECT * FROM "holders" WHERE "id" = $1', 
-        [newId]);
+    let newOwner = await db.oneOrNone('SELECT * FROM "holders" WHERE "id" = $1', [newId]);
+    let oldOwner = await db.oneOrNone('SELECT * FROM "holders" WHERE "id" = $1', [oldId]);
+
     if (newOwner === null) {
         await db.any('INSERT INTO "holders" ("id", "collectionId", "tokenNumber", "currentOwner", "lastTransfer", "chainName", "balance") VALUES ($1, $2, $3, $4, $5, $6, $7)', 
             [newId, collection['contractAddress'], tokenId, to, row['timestamp'], CHAIN_NAME, value]);
     } else {
         await db.any('UPDATE "holders" SET "currentOwner" = $1, "lastTransfer" = $2, "balance" = "balance" + $3 WHERE "id" = $4 ', 
             [to, row['timestamp'], value, newId]);
+        await db.any('UPDATE "holders" SET "balance" = "balance" - $1 WHERE "id" = $2', 
+            [value, oldId]);
+    }
+
+    //old owner should never be null.
+    if (oldOwner === null) {
+        await db.any('INSERT INTO "holders" ("id", "collectionId", "tokenNumber", "currentOwner", "lastTransfer", "chainName", "balance") VALUES ($1, $2, $3, $4, $5, $6, $7)', 
+            [oldId, collection['contractAddress'], tokenId, from, row['timestamp'], CHAIN_NAME, 0]);
+    } else {
         await db.any('UPDATE "holders" SET "balance" = "balance" - $1 WHERE "id" = $2', 
             [value, oldId]);
     }
@@ -252,7 +288,7 @@ async function handleSingleTransfer(row, collection, contract, from, to, tokenId
 }
 
 
-async function handleTransaction(row) {
+async function markTransfer(row) {
 
     if (row['timestamp'] === undefined) {
         let block = await web3.eth.getBlock(row['blockNumber']);
@@ -260,14 +296,13 @@ async function handleTransaction(row) {
     }
 
     try {
-        await db.any('INSERT INTO "transactions" ("id", "blockNumber", "timestamp", "chainName") VALUES ($1, $2, $3, $4)',
+        await db.any('INSERT INTO "transfers" ("id", "blockNumber", "timestamp", "chainName") VALUES ($1, $2, $3, $4)',
             [row['transactionEventHash'], row['blockNumber'], row['timestamp'], CHAIN_NAME]);
 
     } catch (e) {
-        console.log("Error updating transactions table. Trying without chain name.");
-        console.log(e);
-        await db.any('INSERT INTO "transactions" ("id", "blockNumber", "timestamp") VALUES ($1, $2, $3)',
-        [row['transactionEventHash'], row['blockNumber'], row['timestamp']]);
+        console.log(`Error updating transfers table: [${row['transactionEventHash']}].`);
+        console.log(e?.message);
+        console.debug(e);
     }
 
 }
@@ -303,7 +338,20 @@ async function fetchAndStoreTokenMetadata(collection, contract, ca, tokenId, tim
                 await db.any('INSERT INTO "tokens" ("id", "collectionId", "tokenNumber", "chainName", "tokenURI", "metadataBlob", "imageURI") VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT ("id") DO UPDATE SET "tokenURI" = EXCLUDED."tokenURI", "metadataBlob" = EXCLUDED."metadataBlob", "imageURI" = EXCLUDED."imageURI"',
                 [`${ca}-${tokenId}`, ca, tokenId, CHAIN_NAME, metadataUrl, response, image]);
             })
-            .catch(error => console.log(error));
+            .catch(error => {
+                console.log(`failed with ${error.message}, trying again with cors`);
+                fetch(addJustCors(metadataUrl))
+                .then(res => res.json())
+                .then(async response => {
+                    const image = convertIpfstoHttp(collection?.useThumbnailField ? response?.thumbnail || response?.imageThumbnail : response?.image);
+                    await db.any('INSERT INTO "tokens" ("id", "collectionId", "tokenNumber", "chainName", "tokenURI", "metadataBlob", "imageURI") VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT ("id") DO UPDATE SET "tokenURI" = EXCLUDED."tokenURI", "metadataBlob" = EXCLUDED."metadataBlob", "imageURI" = EXCLUDED."imageURI"',
+                    [`${ca}-${tokenId}`, ca, tokenId, CHAIN_NAME, metadataUrl, response, image]);
+                })
+                .catch(error_dos => {
+                    console.log(`failed again with ${error.message}`);
+                })
+                
+            });
     }
 
 }

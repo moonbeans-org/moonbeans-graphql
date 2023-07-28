@@ -183,6 +183,13 @@ CREATE TABLE public.transactions (
     "chainName" text);
 ALTER TABLE public.transactions OWNER TO beansadmin;
 
+CREATE TABLE public.transfers (
+    "id" text NOT NULL, 
+    "blockNumber" numeric NOT NULL, 
+    "timestamp" numeric NOT NULL, 
+    "chainName" text);
+ALTER TABLE public.transfers OWNER TO beansadmin;
+
 CREATE TABLE public."activityHistories" (
     "eventId" text NOT NULL, 
     "userAddress" text NOT NULL, 

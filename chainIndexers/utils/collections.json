@@ -881,7 +881,7 @@
          "ImageBase": "https://www.glmrjungle.com/nfts/art/"
       },
       "status": "trading",
-      "startBlock": "714897",
+      "startBlock": 714897,
       "headerTitle": "Get your GLMR JUNGLE and embark on a P2E fruit-picking adventure!",
       "rugWarning": false,
       "fileExtension": ".png",
@@ -1212,7 +1212,7 @@
       "abi": "nft",
       "calc69": false,
       "status": "trading",
-      "startBlock": "949402",
+      "startBlock": 949402,
       "headerTitle": "JUNGLE BADGES",
       "url": "junglebadges",
       "rugWarning": false,
