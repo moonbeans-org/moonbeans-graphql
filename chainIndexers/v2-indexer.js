@@ -115,29 +115,29 @@ async function startListening() {
     startListeningMarketplace();
 }
 
-/*****************
-   HEALTH CHECK
-******************/
-//Health Check & Convenience Endpoints
-http.createServer(async function (req, res) {
-    console.log('Checking health...');
-    res.writeHead(200, {'Content-Type': 'application/json'});
+// /*****************
+//    HEALTH CHECK
+// ******************/
+// //Health Check & Convenience Endpoints
+// http.createServer(async function (req, res) {
+//     console.log('Checking health...');
+//     res.writeHead(200, {'Content-Type': 'application/json'});
 
-    let responseData = {};
+//     let responseData = {};
 
-    let lastBlocksQuery = await db.manyOrNone('SELECT name, value, timestamp FROM "meta"');
-    if (lastBlocksQuery.length > 0) {
-        for (let row of lastBlocksQuery) {
-            responseData[row['name']] = row['value'];
-        }
-    }
+//     let lastBlocksQuery = await db.manyOrNone('SELECT name, value, timestamp FROM "meta"');
+//     if (lastBlocksQuery.length > 0) {
+//         for (let row of lastBlocksQuery) {
+//             responseData[row['name']] = row['value'];
+//         }
+//     }
 
-    responseData['last_block'] = parseInt(await fs.readFile("./last_block_" + chainObject.chain_name + ".txt"));
+//     responseData['last_block'] = parseInt(await fs.readFile("./last_block_" + chainObject.chain_name + ".txt"));
 
-    res.write(JSON.stringify(responseData));
-    res.end();
-    console.log('Health check completed!');
-}).listen(8080);
+//     res.write(JSON.stringify(responseData));
+//     res.end();
+//     console.log('Health check completed!');
+// }).listen(8080);
 
 /*****************
     MARKETPLACE

@@ -19,5 +19,6 @@ Includes:
 Container Deployment Information:
 -  `.github/workflows/aws.yml` contains the automatic deployment script for the watcher and indexer container services.
 - `ecs-task-definition.json` and `Dockerfile` contain the watcher ECS service task and container definitions.
-- `chainIndexers/ecs-task-definition.json` and `chainIndexers/Dockerfile` contain the indexer ECS service task and container definitions.
+- `chainIndexers/indexer-ecs-task-definition.json` and `chainIndexers/Dockerfile` contain the indexer ECS service task and container definitions.
+- `chainIndexers/holder-ecs-task-definition.json` and `chainIndexers/Dockerfile` contain the holder ECS service task and container definitions.
 - `chainIndexers/beanzilla` contains lambda function code (node.js 18.x) for automatically restarting the indexer service to prevent out-of-memory errors.
