@@ -10,23 +10,32 @@ const db = pgp(cn);
 //Health Check & Convenience Endpoints
 http.createServer(async function (req, res) {
     console.log('Checking health...');
-    res.writeHead(200, {'Content-Type': 'application/json'});
+    try {
+        res.writeHead(200, {'Content-Type': 'application/json'});
 
-    let responseData = {};
-
-    let lastBlocksQuery = await db.manyOrNone('SELECT name, value, timestamp FROM "meta"');
-    if (lastBlocksQuery.length > 0) {
-        for (let row of lastBlocksQuery) {
-            responseData[row['name']] = row['value'];
+        let responseData = {};
+    
+        let lastBlocksChainQuery = await db.manyOrNone('SELECT name, lastIndexedBlock FROM "chains"');
+        if (lastBlocksChainQuery.length > 0) {
+            for (let row of lastBlocksChainQuery) {
+                responseData[`last_block_${row['name']}`] = row['lastIndexedBlock'];
+            }
         }
+        console.log('Last Indexed Blocks:', responseData);
+    
+        let lastBlocksQuery = await db.manyOrNone('SELECT name, value, timestamp FROM "meta"');
+        if (lastBlocksQuery.length > 0) {
+            for (let row of lastBlocksQuery) {
+                responseData[row['name']] = row['value'];
+            }
+        }
+    
+        res.write(JSON.stringify(responseData));
+        res.end();
+    } catch (e){
+        console.log(e);
     }
 
-    responseData['last_block_movr'] = parseInt(await fs.readFile("./chainIndexers/last_block_moonriver.txt"));
-    responseData['last_block_glmr'] = parseInt(await fs.readFile("./chainIndexers/last_block_moonbeam.txt"));
-
-    res.write(JSON.stringify(responseData));
-    res.end();
-    console.log('Health check completed!');
 }).listen(8080);
 
 //GraphQL server
