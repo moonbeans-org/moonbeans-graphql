@@ -93,6 +93,8 @@ async function startListeningHolders() {
         if (endBlock > lastBlock) {
             endBlock = lastBlock;
         }
+        
+        handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collection); // TODO: REMOVE await
     }
 }
 
