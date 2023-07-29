@@ -161,6 +161,7 @@ jobs:
         service: ${{ env.ECS_WATCHER_SERVICE }}
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
+        force-new-deployment: true
 
     - name: Fill in the new image ID for the Moonriver Indexer task definition
       id: indexer-task-def-1
