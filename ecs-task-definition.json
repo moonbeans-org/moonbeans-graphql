@@ -29,10 +29,5 @@
             }
           }
       }
-  ],
-  "placementConstraints": [
-    {
-        "type": "distinctInstance"
-    }
   ]
 }
