@@ -15,7 +15,7 @@ http.createServer(async function (req, res) {
 
         let responseData = {};
     
-        let lastBlocksChainQuery = await db.manyOrNone('SELECT name, lastIndexedBlock FROM "chains"');
+        let lastBlocksChainQuery = await db.manyOrNone('SELECT name, "lastIndexedBlock" FROM "chains"');
         if (lastBlocksChainQuery.length > 0) {
             for (let row of lastBlocksChainQuery) {
                 responseData[`last_block_${row['name']}`] = row['lastIndexedBlock'];
