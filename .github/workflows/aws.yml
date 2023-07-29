@@ -32,11 +32,11 @@ on:
 
 env:
   AWS_REGION: us-east-1
-  ECS_CLUSTER: moonbeans
+  ECS_CLUSTER: moonbeans-serverless
   
   WATCHER_ECS_TASK_DEFINITION: ./ecs-task-definition.json
   ECR_WATCHER_REPOSITORY: watcher
-  ECS_WATCHER_SERVICE: watcher-auto
+  ECS_WATCHER_SERVICE: watcher
   WATCHER_CONTAINER_NAME: watcher
 
 

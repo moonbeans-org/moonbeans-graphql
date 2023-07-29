@@ -1,24 +1,25 @@
 {
   "family": "moonbeans-indexer-tasks",
-  "networkMode": "bridge",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::748459872289:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "moonriver-indexer",
       "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/moonriver:latest",
-      "cpu": 256,
-      "memory": 512,
       "essential": true,
       "portMappings": [
         {
           "containerPort": 8081,
-          "hostPort": 8081,
           "protocol": "tcp"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/moonriver-indexer",
+          "awslogs-group": "/ecs/moonriver-indexer-serverless",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
@@ -27,20 +28,17 @@
     {
       "name": "moonbeam-indexer",
       "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/moonbeam:latest",
-      "cpu": 256,
-      "memory": 512,
       "essential": true,
       "portMappings": [
         {
           "containerPort": 8082,
-          "hostPort": 8082,
           "protocol": "tcp"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/moonbeam-indexer",
+          "awslogs-group": "/ecs/moonbeam-indexer-serverless",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }

@@ -1,21 +1,21 @@
 {
   "family": "moonbeans-tasks",
-  "networkMode": "bridge",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::748459872289:role/ecsTaskExecutionRole",
   "containerDefinitions": [
       {
           "name": "watcher",
           "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/watcher:latest",
-          "cpu": 256,
-          "memory": 512,
           "portMappings": [
             {
               "containerPort": 3000,
-              "hostPort": 3000,
               "protocol": "tcp"
             },
             {
               "containerPort": 8080,
-              "hostPort": 8080,
               "protocol": "tcp"
             }
           ],
@@ -23,7 +23,7 @@
           "logConfiguration": {
             "logDriver": "awslogs",
             "options": {
-              "awslogs-group": "/ecs/watcher-task-definition",
+              "awslogs-group": "/ecs/watcher-serverless",
               "awslogs-region": "us-east-1",
               "awslogs-stream-prefix": "ecs"
             }

@@ -1,24 +1,25 @@
 {
   "family": "moonbeans-holder-tasks",
-  "networkMode": "bridge",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::748459872289:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "moonriver-holder",
       "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/moonriver-holder:latest",
-      "cpu": 256,
-      "memory": 512,
       "essential": true,
       "portMappings": [
         {
           "containerPort": 8083,
-          "hostPort": 8083,
           "protocol": "tcp"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/moonriver-holder",
+          "awslogs-group": "/ecs/moonriver-holder-serverless",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
@@ -27,20 +28,17 @@
     {
       "name": "moonbeam-holder",
       "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/moonbeam-holder:latest",
-      "cpu": 256,
-      "memory": 512,
       "essential": true,
       "portMappings": [
         {
           "containerPort": 8084,
-          "hostPort": 8084,
           "protocol": "tcp"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/moonbeam-holder",
+          "awslogs-group": "/ecs/moonbeam-holder-serverless",
           "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
