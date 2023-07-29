@@ -93,7 +93,7 @@ async function startListeningHolders() {
         if (endBlock > lastBlock) {
             endBlock = lastBlock;
         }
-        
+
         handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collection); // TODO: REMOVE await
     }
 }
@@ -149,7 +149,7 @@ async function handle721Transfers(collection, startBlock, endBlock) {
 
         row['transactionEventHash'] = row['transactionHash'] + "-" + row['transactionIndex'] + "-" + row['logIndex'] + "-" + row['blockNumber'];
 
-        const txrow = await db.oneOrNone('SELECT * FROM "transactions" WHERE "id" = $1', [row['transactionEventHash']]);
+        const txrow = await db.oneOrNone('SELECT * FROM "transfers" WHERE "id" = $1', [row['transactionEventHash']]);
 
         if (txrow !== null) {
             continue;
