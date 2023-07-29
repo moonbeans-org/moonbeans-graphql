@@ -149,7 +149,7 @@ async function handle721Transfers(collection, startBlock, endBlock) {
 
         row['transactionEventHash'] = row['transactionHash'] + "-" + row['transactionIndex'] + "-" + row['logIndex'] + "-" + row['blockNumber'];
 
-        const txrow = await db.oneOrNone('SELECT * FROM "transfers" WHERE "id" = $1', [row['transactionEventHash']]);
+        const txrow = await db.manyOrNone('SELECT * FROM "transfers" WHERE "id" = $1', [row['transactionEventHash']]);
 
         if (txrow !== null) {
             continue;
@@ -221,7 +221,7 @@ async function handle1155Transfers(collection, startBlock, endBlock) {
 
         row['transactionEventHash'] = row['transactionHash'] + "-" + row['transactionIndex'] + "-" + row['logIndex'] + "-" + row['blockNumber'];
 
-        const txrow = await db.oneOrNone('SELECT * FROM "transfers" WHERE "id" = $1', [row['transactionEventHash']]);
+        const txrow = await db.manyOrNone('SELECT * FROM "transfers" WHERE "id" = $1', [row['transactionEventHash']]);
 
         if (txrow !== null) {
             continue;

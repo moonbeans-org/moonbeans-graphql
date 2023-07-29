@@ -182,6 +182,7 @@ CREATE TABLE public.transactions (
     "timestamp" numeric NOT NULL, 
     "chainName" text);
 ALTER TABLE public.transactions OWNER TO beansadmin;
+CREATE INDEX transaction_index ON public.transactions ("id");
 
 CREATE TABLE public.transfers (
     "id" text NOT NULL, 
@@ -189,6 +190,7 @@ CREATE TABLE public.transfers (
     "timestamp" numeric NOT NULL, 
     "chainName" text);
 ALTER TABLE public.transfers OWNER TO beansadmin;
+CREATE INDEX transfer_index ON public.transfers ("id");
 
 CREATE TABLE public."activityHistories" (
     "eventId" text NOT NULL, 
