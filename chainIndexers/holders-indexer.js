@@ -265,8 +265,6 @@ async function handleSingleTransfer(row, collection, contract, from, to, tokenId
     } else {
         await db.any('UPDATE "holders" SET "currentOwner" = $1, "lastTransfer" = $2, "balance" = "balance" + $3 WHERE "id" = $4 ', 
             [to, row['timestamp'], value, newId]);
-        await db.any('UPDATE "holders" SET "balance" = "balance" - $1 WHERE "id" = $2', 
-            [value, oldId]);
     }
 
     //old owner should never be null.
