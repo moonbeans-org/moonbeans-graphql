@@ -10,11 +10,8 @@ COPY package.json package-lock.json* ./
 # Install dependencies
 RUN npm install
 
-# Copy the watcher
+# Copy cleanup directory
 COPY . .
-
-# Copy the .env
-COPY ../../.env ./
 
 # Run the Node.js script
 CMD ["/bin/sh", "listingCleanup.sh"]
