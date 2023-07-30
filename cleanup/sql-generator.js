@@ -1,5 +1,5 @@
 const pgp = require("pg-promise")({});
-const cn = 'postgres://postgres:<DBPASS>@<DBHOST>:5432/moonbeanstwochainz';
+const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}:5432/${process.env.DBNAME}`;
 const db = pgp(cn);
 const fs = require("fs").promises;
 const Web3 = require("web3");
@@ -68,7 +68,7 @@ async function main() {
 
     await fetch("https://api.moonbeans.io/collection", {
         "method": "GET"
-        }).then(res => {return res.json()}).then(async response => {
+        }).then(res => {return res.json()}).then(async collections => {
 
             let collectionAddresses = {};
             let collectionChains = {};

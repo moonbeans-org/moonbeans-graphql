@@ -1,0 +1,23 @@
+{
+  "family": "moonbeans-tasks",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512",
+  "executionRoleArn": "arn:aws:iam::748459872289:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+      {
+          "name": "cleanup",
+          "image": "748459872289.dkr.ecr.us-east-1.amazonaws.com/cleanup:latest",
+          "essential": false,
+          "logConfiguration": {
+            "logDriver": "awslogs",
+            "options": {
+              "awslogs-group": "/ecs/cleanup-serverless",
+              "awslogs-region": "us-east-1",
+              "awslogs-stream-prefix": "ecs"
+            }
+          }
+      }
+  ]
+}

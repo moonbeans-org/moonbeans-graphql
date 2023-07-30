@@ -39,7 +39,6 @@ env:
   ECS_WATCHER_SERVICE: watcher
   WATCHER_CONTAINER_NAME: watcher
 
-
   INDEXER_ECS_TASK_DEFINITION: ./chainIndexers/indexer-ecs-task-definition.json
   ECS_INDEXER_SERVICE: indexer
 
@@ -57,6 +56,12 @@ env:
   
   ECR_MOONBEAM_HOLDER_REPOSITORY: moonbeam-holder
   MOONBEAM_HOLDER_CONTAINER_NAME: moonbeam-holder
+
+  CLEANUP_TASK_DEFINITION: ./cleanup/ecs-task-definition.json
+  ECS_CLEANUP_SERVICE: cleanup
+  ECR_CLEANUP_REPOSITORY: cleanup
+  CLEANUP_CONTAINER_NAME: cleanup
+
 
   DBHOST: ${{ secrets.DB_HOST }}
   DBNAME: ${{ secrets.DB_NAME }}
@@ -146,6 +151,17 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:latest
         echo "moonbeam-holder-image=$ECR_REGISTRY/$ECR_MOONBEAM_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+        # Build cleanup container and push to ECR
+        cd ../
+        cp .env cleanup/.env
+        cd cleanup
+        docker build -t $IMAGE_TAG .
+        docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_CLEANUP_REPOSITORY:$IMAGE_TAG
+        docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_CLEANUP_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_CLEANUP_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_CLEANUP_REPOSITORY:latest
+        echo "cleanup-image=$ECR_REGISTRY/$ECR_CLEANUP_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
     - name: Fill in the new image ID for the Watcher task definition
       id: watcher-task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -212,3 +228,20 @@ jobs:
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
         force-new-deployment: true
+
+    - name: Fill in the new image ID for the Cleanup task definition
+      id: cleanup-task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ env.CLEANUP_ECS_TASK_DEFINITION }}
+        container-name: ${{ env.CLEANUP_CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.cleanup-image }}
+
+    - name: Deploy Cleanup Amazon ECS task definition
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.cleanup-task-def.outputs.task-definition }}
+        service: ${{ env.ECS_CLEANUP_SERVICE }}
+        cluster: ${{ env.ECS_CLUSTER }}
+        wait-for-service-stability: false
+        force-new-deployment: false
