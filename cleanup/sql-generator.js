@@ -1,7 +1,5 @@
+require('dotenv').config()
 const pgp = require("pg-promise")({});
-console.log(process.env.DBUSER)
-console.log(process.env.DBHOST)
-console.log(process.env.DBNAME)
 const cn = `postgres://${process.env.DBUSER}:${process.env.DBPASS}@${process.env.DBHOST}:5432/${process.env.DBNAME}`;
 const db = pgp(cn);
 const fs = require("fs").promises;

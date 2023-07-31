@@ -1,3 +1,5 @@
+#!/bin/bash
+source .env
 node sql-generator.js
 if [ ! -d "deletions" ]; then
   mkdir "deletions"
