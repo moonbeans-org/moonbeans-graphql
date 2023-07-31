@@ -1,4 +1,7 @@
 node sql-generator.js
+if [ ! -d "deletions" ]; then
+  mkdir "deletions"
+fi
 deletionDir=`ls -t deletions`
 if [ -z "$deletionDir" ]
 then
