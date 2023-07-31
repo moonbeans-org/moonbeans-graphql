@@ -162,6 +162,15 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_CLEANUP_REPOSITORY:latest
         echo "cleanup-image=$ECR_REGISTRY/$ECR_CLEANUP_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
 
+    - name: Fill in the new image ID for the Cleanup task definition
+      id: cleanup-task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: ${{ env.CLEANUP_ECS_TASK_DEFINITION }}
+        container-name: ${{ env.CLEANUP_CONTAINER_NAME }}
+        image: ${{ steps.build-image.outputs.cleanup-image }}
+
+
     - name: Fill in the new image ID for the Watcher task definition
       id: watcher-task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
@@ -228,11 +237,3 @@ jobs:
         cluster: ${{ env.ECS_CLUSTER }}
         wait-for-service-stability: true
         force-new-deployment: true
-
-    - name: Fill in the new image ID for the Cleanup task definition
-      id: cleanup-task-def
-      uses: aws-actions/amazon-ecs-render-task-definition@v1
-      with:
-        task-definition: ${{ env.CLEANUP_ECS_TASK_DEFINITION }}
-        container-name: ${{ env.CLEANUP_CONTAINER_NAME }}
-        image: ${{ steps.build-image.outputs.cleanup-image }}
