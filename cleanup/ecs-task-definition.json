@@ -1,5 +1,5 @@
 {
-  "family": "moonbeans-tasks",
+  "family": "moonbeans-cleanup-tasks",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "256",
