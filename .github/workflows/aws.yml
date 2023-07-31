@@ -57,7 +57,7 @@ env:
   ECR_MOONBEAM_HOLDER_REPOSITORY: moonbeam-holder
   MOONBEAM_HOLDER_CONTAINER_NAME: moonbeam-holder
 
-  CLEANUP_TASK_DEFINITION: ./cleanup/ecs-task-definition.json
+  CLEANUP_ECS_TASK_DEFINITION: ./cleanup/ecs-task-definition.json
   ECS_CLEANUP_SERVICE: cleanup
   ECR_CLEANUP_REPOSITORY: cleanup
   CLEANUP_CONTAINER_NAME: cleanup
@@ -236,12 +236,3 @@ jobs:
         task-definition: ${{ env.CLEANUP_ECS_TASK_DEFINITION }}
         container-name: ${{ env.CLEANUP_CONTAINER_NAME }}
         image: ${{ steps.build-image.outputs.cleanup-image }}
-
-    - name: Deploy Cleanup Amazon ECS task definition
-      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
-      with:
-        task-definition: ${{ steps.cleanup-task-def.outputs.task-definition }}
-        service: ${{ env.ECS_CLEANUP_SERVICE }}
-        cluster: ${{ env.ECS_CLUSTER }}
-        wait-for-service-stability: false
-        force-new-deployment: false
