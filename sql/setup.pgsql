@@ -175,6 +175,7 @@ CREATE TABLE public.tokens (
     "metadataBlob" jsonb,
     "imageURI" text);
 ALTER TABLE public.tokens OWNER TO beansadmin;
+CREATE INDEX tokens_per_collection_index ON public.tokens ("collectionId");
 
 CREATE TABLE public.transactions (
     "id" text NOT NULL, 

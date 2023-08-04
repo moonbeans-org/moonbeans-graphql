@@ -5,64 +5,47 @@ const db = pgp(cn);
 const fs = require("fs").promises;
 const Web3 = require("web3");
 const fetch = require('node-fetch');
+const { program, Option } = require('commander');
+const { CHAINS, CHAIN_LIST } = require("../chainIndexers/utils/chains.js");
 
-const providerMOVR = new Web3.providers.WebsocketProvider("wss://moonriver.api.onfinality.io/public-ws", {
-        clientConfig: {
-            maxReceivedFrameSize: 100000000,
-            maxReceivedMessageSize: 100000000,
-            keepalive: true,
-            keepaliveInterval: -1
-        },
+/*****************
+    CHAIN SETUP
+******************/
 
-        reconnect: {
-            auto: true,
-            delay: 50000000,
-            maxAttempts: 5,
-            onTimeout: true
-        },
+program
+  .version('1.0.0', '-v, --version')
+  .addOption(new Option('-c, --chain <value>', 'chain name ~ should be present in chains.js').choices(CHAIN_LIST))
+  .parse();
 
-        timeout: 30000000
-    })
+const options = program.opts();
+const CHAIN_NAME = options.chain;
+let chainObject = CHAINS[CHAIN_NAME];
 
-const providerGLMR = new Web3.providers.WebsocketProvider("wss://moonbeam.api.onfinality.io/public-ws", {
-        clientConfig: {
-            maxReceivedFrameSize: 100000000,
-            maxReceivedMessageSize: 100000000,
-            keepalive: true,
-            keepaliveInterval: -1
-        },
+console.log("Scanning for invalid asks on " + CHAIN_NAME);
 
-        reconnect: {
-            auto: true,
-            delay: 50000000,
-            maxAttempts: 5,
-            onTimeout: true
-        },
+/*****************
+    WEB3 SETUP
+******************/
 
-        timeout: 30000000
-    })
+// Get our web3 provider setup
+const provider = new Web3(new Web3.providers.WebsocketProvider(chainObject.rpc, {
+    clientConfig: {
+        maxReceivedFrameSize: 100000000,
+        maxReceivedMessageSize: 100000000,
+        keepalive: true,
+        keepaliveInterval: -1
+    },
 
-// const providerNOVA = new Web3.providers.WebsocketProvider("wss://bold-greatest-frog.nova-mainnet.discover.quiknode.pro/06c3e46fa798872b6c473beb9c53ef101695fbb7/", {
-//     clientConfig: {
-//         maxReceivedFrameSize: 100000000,
-//         maxReceivedMessageSize: 100000000,
-//         keepalive: true,
-//         keepaliveInterval: -1
-//     },
+    reconnect: {
+        auto: true,
+        delay: 50000000,
+        maxAttempts: 5,
+        onTimeout: true
+    },
 
-//     reconnect: {
-//         auto: true,
-//         delay: 50000000,
-//         maxAttempts: 5,
-//         onTimeout: true
-//     },
+    timeout: 30000000
+}));
 
-//     timeout: 30000000
-// })
-
-const web3movr = new Web3(providerMOVR);
-const web3glmr = new Web3(providerGLMR);
-// const web3nova = new Web3(providerNOVA);
 
 async function main() {
     let mnbeansAsks = [];
@@ -74,25 +57,26 @@ async function main() {
             let collectionAddresses = {};
             let collectionChains = {};
         
-            for (let [key, val] of Object.entries(collections)) {
-                collectionAddresses[val['contractAddress']] = val['title'];
-                collectionChains[val['contractAddress']] = val['chain']; 
+            for (let collection of collections) {
+                collectionAddresses[collection['contractAddress']] = collection['title'];
+                collectionChains[collection['contractAddress']] = collection['chain']; 
             }
-        
+
             let oldAsks = [];
-            mnbeansAsks = await db.manyOrNone('SELECT "tokenId", "collectionId", "timestamp", "tokenNumber", "transactionHash" FROM "asks"');
+            mnbeansAsks = await db.manyOrNone('SELECT "tokenId", "collectionId", "timestamp", "tokenNumber", "transactionHash", "lister" FROM "asks"');
             console.log("Listed tokens: ", mnbeansAsks.length)
             if (mnbeansAsks.length > 0) {
                 console.log("Processing token list..");
                 try {
                     while (mnbeansAsks.length > 0) {
                         ask = mnbeansAsks[0];
-                        if (!(ask['collectionId'] in collectionAddresses)) {
+                        if (!(ask['collectionId'] in collectionAddresses) || collectionChains[ask['collectionId']]  !== CHAIN_NAME) {
+                            console.log("Skipping", ask['tokenId']);
                             mnbeansAsks.shift();
                             continue;
                         }
         
-                        let holder = await db.oneOrNone('SELECT "currentOwner", "lastTransfer" FROM "holders" WHERE "id" = $1', [ask['tokenId']]);
+                        let holder = await db.oneOrNone('SELECT "currentOwner", "lastTransfer", "balance" FROM "holders" WHERE "id" = $1', [`${ask['tokenId']}-${ask['lister']}`]);
                         if (holder === null) {
                             console.log("Skipping", ask['tokenId']);
                             mnbeansAsks.shift();
@@ -101,17 +85,13 @@ async function main() {
         
                         if (ask['timestamp'] < holder['lastTransfer']) {
                             let tx;
-                            if (collectionChains[ask['collectionId']]  === 'moonriver') {
-                                tx = await web3movr.eth.getTransaction(ask['transactionHash']);
-                            } else if (collectionChains[ask['collectionId']] === 'moonbeam') {
-                                tx = await web3glmr.eth.getTransaction(ask['transactionHash']);
-                            } else if (collectionChains[ask['collectionId']] === 'arbitrumnova') {
-                                // tx = await web3nova.eth.getTransaction(ask['transactionHash']);
-                                console.log('new chain who dis');
-                            }
+                            tx = await provider.eth.getTransaction(ask['transactionHash']);
         
-                            if (tx['from'] != holder['currentOwner']) {
-                                    oldAsks.push(Object.assign({}, ask, holder));
+                            if (tx['from'] !== holder['currentOwner'] || holder['balance'] === "0" ) {
+                                oldAsks.push(Object.assign({}, ask, holder));
+                                // if (ask['listingHash'] !== "OLD_CONTRACT") {
+                                //     //TODO: get relayer to delete listing from contract
+                                // }
                             }
                         }
                         mnbeansAsks.shift();
