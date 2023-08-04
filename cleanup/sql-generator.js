@@ -6,7 +6,7 @@ const fs = require("fs").promises;
 const Web3 = require("web3");
 const fetch = require('node-fetch');
 const { program, Option } = require('commander');
-const { CHAINS, CHAIN_LIST } = require("../chainIndexers/utils/chains.js");
+const { CHAINS, CHAIN_LIST } = require("./chains.js");
 
 /*****************
     CHAIN SETUP
