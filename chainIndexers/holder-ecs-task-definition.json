@@ -2,8 +2,8 @@
   "family": "moonbeans-holder-tasks",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
-  "cpu": "2048",
-  "memory": "4096",
+  "cpu": "512",
+  "memory": "1024",
   "executionRoleArn": "arn:aws:iam::748459872289:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {

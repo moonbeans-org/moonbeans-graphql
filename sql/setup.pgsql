@@ -215,14 +215,14 @@ ALTER TABLE ONLY public."askHistories" ALTER COLUMN id SET DEFAULT nextval('publ
 CREATE TYPE public."fungibleTradeStatus" AS ENUM ('OPEN', 'PARTIAL', 'ACCEPTED', 'CANCELLED');
 ALTER TYPE public."fungibleTradeStatus" OWNER TO beansadmin;
 CREATE TYPE public."fungibleTradeType" AS ENUM ('BUY', 'SELL');
-ALTER TYPE public."fungibleTradeStatus" OWNER TO beansadmin;
+ALTER TYPE public."fungibleTradeType" OWNER TO beansadmin;
 
 CREATE TABLE public."fungibleTrades" (
     "tradeHash" text NOT NULL, 
     "contractAddress" text NOT NULL, 
     "tokenNumber" numeric NOT NULL, 
     "status" public."fungibleTradeStatus" NOT NULL, 
-    "tradeType" public."fungibleTradeStatus" NOT NULL, 
+    "tradeType" public."fungibleTradeType" NOT NULL, 
     "allowPartials" boolean NOT NULL DEFAULT FALSE,
     "isEscrowed" boolean NOT NULL DEFAULT TRUE,
     "totalQuantity" numeric NOT NULL, 
