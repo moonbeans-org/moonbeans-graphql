@@ -7,6 +7,7 @@ const Web3 = require("web3");
 const fetch = require('node-fetch');
 const { program, Option } = require('commander');
 const { CHAINS, CHAIN_LIST } = require("./chains.js");
+const ABIS = require("../chainIndexers/utils/abis.js");
 
 /*****************
     CHAIN SETUP
@@ -104,7 +105,51 @@ async function main() {
             }
         
             console.log("Token Transfers after their listing: ", oldAsks.length);
+
+            //Handle 1155s
+            let deadTrades = [];
+            mnbeansFungibleListings = await db.manyOrNone('SELECT "contractAddress", "tokenNumber", "lastUpdatedTimestamp", "status", "remainingQuantity", "transactionHash", "tradeType", "tradeHash" FROM "fungibleTrades" WHERE "tradeType" = $1', ["SELL"]);
+            console.log("Fungible Listings: ", mnbeansFungibleListings.length)
+            if (mnbeansFungibleListings.length > 0) {
+                console.log("Processing token list..");
+                try {
+                    while (mnbeansFungibleListings.length > 0) {
+                        ask = mnbeansFungibleListings[0];
+                        if (!(ask['contractAddress'] in collectionAddresses) || collectionChains[ask['contractAddress']] !== CHAIN_NAME) {
+                            console.log("Skipping", ask['contractAddress']-ask['tokenNumber']);
+                            mnbeansFungibleListings.shift();
+                            continue;
+                        }
         
+                        let holder = await db.oneOrNone('SELECT "currentOwner", "lastTransfer", "balance" FROM "holders" WHERE "id" = $1', [`${ask['contractAddress']}-${ask['tokenNumber']}-${ask['lister']}`]);
+                        if (holder === null) {
+                            console.log("Skipping", ask['tokenId']);
+                            mnbeansFungibleListings.shift();
+                            continue;
+                        }
+        
+                        if ((ask['remainingQuantity'] < holder['balance']) || holder['balance' === "0"]) {
+                            deadTrades.push(Object.assign({}, ask, holder));
+                            //TODO: get relayer to delete listing from contract
+                        } else {
+                            const fungibleMarketPlaceContract = new provider.eth.Contract(ABIS.FUNGIBLE_MARKET, chainObject?.fungible_marketplace_contract_address);
+                            const isValidTrade = await fungibleMarketPlaceContract?.methods.isValidTrade(ask['tradeHash']).call();
+                            if (!isValidTrade) {
+                                console.log(`found invalid trade ${ask['tradeHash']}`);
+                                deadTrades.push(Object.assign({}, ask, holder));
+                            }
+                        }
+                        mnbeansFungibleListings.shift();
+                    }
+                } catch (e) {
+                    console.log(e);
+                    console.log("Retrying...");
+                    await sleep(120000);
+                }
+            }
+        
+            console.log("Invalid 1155 listings: ", deadTrades.length, deadTrades);
+
             let oldContracts = {};
             let tokenIds = [];
             for (let oldAsk of oldAsks) {
@@ -122,6 +167,7 @@ async function main() {
             }
         
             console.log(oldContracts);
+
         
             if (tokenIds.length) {
                 let date_ob = new Date();
