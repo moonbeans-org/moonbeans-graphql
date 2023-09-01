@@ -99,10 +99,9 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 18.x
-    - run: npm ci
 
-    - name: Refresh Collections
-    - run: node collectionRefresh/get_collections.js
+    - name: Refresh Packages & Collections
+      run: npm ci && node collectionRefresh/get_collections.js
 
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
