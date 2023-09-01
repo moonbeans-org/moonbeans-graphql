@@ -119,6 +119,7 @@ jobs:
         echo USE_SSL=false >> .env
         echo PINATA_TOKEN=${PINATA_TOKEN} >> .env
         echo JUSTCORS_TOKEN=${JUSTCORS_TOKEN} >> .env
+        echo BLAST_KEY=${BLAST_KEY} >> .env
 
         # Build watcher container and push to ECR
         docker build -t $IMAGE_TAG .
