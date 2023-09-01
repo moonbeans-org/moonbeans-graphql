@@ -600,9 +600,9 @@
          "twitter": "https://twitter.com/CryptoBWI",
          "discord": "https://discord.gg/6MXpKqQy"
       },
-      "enableTrading": false,
+      "enableTrading": true,
       "abi": "royalemeerkats",
-      "status": "upcoming",
+      "status": "minting",
       "startBlock": 4120235,
       "enableMinting": true,
       "url": "royalewildmeerkats",
@@ -633,11 +633,12 @@
       "mintPriceMethod": "price",
       "startIndex": 1,
       "chain": "moonbeam",
+      "expiry": 1693583963090,
       "contractAddress": "0xDD4D801Ba5ae5Cb4FE48378a114605B2a02a8047",
       "bannerImage": "/images/StorefrontBanners/royalemeerkats.jpeg",
       "title": "Royale Wild Meerkats",
       "fullDescription": "In the heart of an untouched wilderness, the Royale Wild Meerkats embarked on an extraordinary venture to create the Moonbeam Challenge, a gathering that celebrated both the wild spirit and the thrill of poker tournaments. Beneath the sprawling canvas of stars, they orchestrated captivating events that beckoned creatures from the deepest corners of the wild. Their deck of cards, adorned with suits of bronze, silver, gold, platinum, and diamond, mirrored the spectrum of nature's magnificence.",
-      "enableMint": false
+      "enableMint": true
    },
    {
       "links": {
@@ -1790,7 +1791,7 @@
       "ctaURL": "https://www.damnedpiratessociety.io/",
       "shortTitle": "Artifact",
       "isERC1155": true,
-      "isFeatured": false,
+      "isFeatured": true,
       "enableBreeding": false,
       "onlyShowValid": false,
       "enableMint": false,
@@ -2461,7 +2462,7 @@
       "ctaText": "Travel to Tortuga!",
       "ctaURL": "https://mint.damnedpiratessociety.io/",
       "shortTitle": "Damned Pirate",
-      "isFeatured": true,
+      "isFeatured": false,
       "holocard": false,
       "externalUrl": "https://mint.damnedpiratessociety.io/",
       "enableBreeding": false,
@@ -4313,7 +4314,7 @@
          189
       ],
       "isERC1155": true,
-      "isFeatured": false,
+      "isFeatured": true,
       "holocard": false,
       "externalUrl": "https://exiledracers.com",
       "ctaStyle": "exiled-button btn-border",

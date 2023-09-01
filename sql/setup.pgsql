@@ -150,7 +150,8 @@ CREATE INDEX owner_index ON public.holders ("currentOwner");
 CREATE TABLE public.meta (
     "name" text NOT NULL, 
     "value" text, 
-    "timestamp" numeric);
+    "timestamp" numeric,
+    "staging" boolean DEFAULT FALSE);
 ALTER TABLE public.meta OWNER TO beansadmin;
 
 CREATE TABLE public.chains (

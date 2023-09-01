@@ -29,6 +29,7 @@ let blockTimestamps = {};
 console.log("Starting Moonbeans Indexer for " + CHAIN_NAME);
 
 let collections = JSON.parse(fs.readFileSync(__dirname + '/utils/collections.json'));
+let testCollections = JSON.parse(fs.readFileSync(__dirname + '/utils/test_collections.json'));
 let noIndexList = ['0xc433f820467107bc5176b95f3a58248C4332F8DE', '0x7B2e778453AB3a0D946c4620fB38A0530A434e15', '0x08716e418e68564C96b68192E985762740728018', '0x7BCbA68680a1178A84a816B6B2a6Aa191eAA4734'];
 
 /*****************
@@ -72,6 +73,7 @@ async function startListening() {
 async function startListeningHolders() {
 
     lastBlock = await web3.eth.getBlockNumber();
+    let indexedKeys = [];
 
     for (let index in collections) {
         let collection = collections[index];
@@ -80,12 +82,16 @@ async function startListeningHolders() {
         // if (index < 0 || index > 20) continue; // TODO: ?? handle this
 
         let key = collection?.collectionId;
+        indexedKeys.push(key);
         let startBlockQuery = await db.oneOrNone('SELECT "value" FROM "meta" WHERE "name" = $1', ['last_block_' + key]);
         let startBlock = collection?.startBlock ?? 0;
         if (startBlockQuery === null) {
             await db.any('INSERT INTO "meta" ("name", "value", "timestamp") VALUES ($1, $2, $3)', ['last_block_' + key, startBlock, Math.floor(Date.now() / 1000)]);
         } else {
             startBlock = parseInt(startBlockQuery['value']);
+            if (startBlockQuery['staging'] === true) {
+                await db.any('UPDATE "meta" SET "staging" = $1 WHERE "name" = $2', [false, 'last_block_' + key]);
+            }
         }
 
         let endBlock = startBlock + blockBatch;
@@ -95,6 +101,31 @@ async function startListeningHolders() {
         }
 
         handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collection); // TODO: REMOVE await
+    }
+
+    for (let index in testCollections) {
+        let collection = testCollections[index];
+        let key = collection?.collectionId;
+        if (indexedKeys.includes(key)) {
+            continue;
+        } else {
+            indexedKeys.push(key);
+            let startBlockQuery = await db.oneOrNone('SELECT "value" FROM "meta" WHERE "name" = $1', ['last_block_' + key]);
+            let startBlock = collection?.startBlock ?? 0;
+            if (startBlockQuery === null) {
+                await db.any('INSERT INTO "meta" ("name", "value", "timestamp", "staging") VALUES ($1, $2, $3, $4)', ['last_block_' + key, startBlock, Math.floor(Date.now() / 1000), true]);
+            } else {
+                startBlock = parseInt(startBlockQuery['value']);
+            }
+    
+            let endBlock = startBlock + blockBatch;
+    
+            if (endBlock > lastBlock) {
+                endBlock = lastBlock;
+            }
+    
+            handleCollectionTransfers(index, key, startBlock, endBlock, lastBlock, collection); // TODO: REMOVE await
+        }
     }
 }
 
