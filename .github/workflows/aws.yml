@@ -101,7 +101,7 @@ jobs:
         node-version: 18.x
 
     - name: Refresh Packages & Collections
-      run: npm ci && node collectionRefresh/get_collections.js
+      run: npm i && node collectionRefresh/get_collections.js
 
     - name: Build, tag, and push image to Amazon ECR
       id: build-image
