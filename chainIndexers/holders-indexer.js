@@ -105,6 +105,7 @@ async function startListeningHolders() {
 
     for (let index in testCollections) {
         let collection = testCollections[index];
+        if (collection['chain'] !== CHAIN_NAME || collection['contractAddress'] === '0xfEd9e29b276C333b2F11cb1427142701d0D9f7bf') continue;
         let key = collection?.collectionId;
         if (indexedKeys.includes(key)) {
             continue;
