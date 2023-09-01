@@ -11,6 +11,7 @@ function prependIpfs(ipfsUrl) {
 function convertIpfstoHttp(ipfsUrl) {
     if (typeof ipfsUrl === "string") {
         let temp = ipfsUrl
+            .replace("ipfs://ipfs/", "https://ipfs.moonbeans.io/ipfs/")
             .replace("ipfs://", "https://ipfs.moonbeans.io/ipfs/")
             .replace('https://gateway.pinata.cloud/ipfs/', 'https://ipfs.moonbeans.io/ipfs/')
             .replace('https://moonbeans.mypinata.cloud/ipfs/', 'https://ipfs.moonbeans.io/ipfs/')
