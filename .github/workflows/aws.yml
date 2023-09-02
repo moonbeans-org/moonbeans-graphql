@@ -69,6 +69,7 @@ env:
   DBPASSWORD: ${{ secrets.DB_PASSWORD }}
   PINATA_TOKEN: ${{ secrets.PINATA_TOKEN }}
   JUSTCORS_TOKEN: ${{ secrets.JUSTCORS_TOKEN }}
+  BLAST_KEY: ${{ secrets.BLAST_KEY }}
 
 
 permissions:
