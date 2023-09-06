@@ -237,6 +237,13 @@ CREATE TABLE public."fungibleTrades" (
     "transactionHash" text);
 ALTER TABLE public."fungibleTrades" OWNER TO beansadmin;
 
+-- Double check this function
+CREATE OR REPLACE FUNCTION uniqueHolders(collectionId text) RETURNS int AS $$
+BEGIN
+  RETURN COUNT(DISTINCT "currentOwner") FROM holders WHERE "collectionId" = collectionId AND "balance" > 0;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
 -- Best way I can think to do this for now - have one of these per chain. otherwise volumes get distorted
 CREATE TABLE public."moonbeamTraders" (
     "userAddress" text NOT NULL PRIMARY KEY,

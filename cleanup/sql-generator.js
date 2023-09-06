@@ -6,8 +6,8 @@ const fs = require("fs").promises;
 const Web3 = require("web3");
 const fetch = require('node-fetch');
 const { program, Option } = require('commander');
-const { CHAINS, CHAIN_LIST } = require("./chains.js");
-const ABIS = require("../chainIndexers/utils/abis.js");
+const { CHAINS, CHAIN_LIST } = require("./utils/chains.js");
+const ABIS = require("./utils/abis.js");
 
 /*****************
     CHAIN SETUP
@@ -113,32 +113,32 @@ async function main() {
             if (mnbeansFungibleListings.length > 0) {
                 console.log("Processing token list..");
                 try {
+                    const fungibleMarketPlaceContract = new provider.eth.Contract(ABIS.FUNGIBLE_MARKET, chainObject?.fungible_marketplace_contract_address);
                     while (mnbeansFungibleListings.length > 0) {
                         ask = mnbeansFungibleListings[0];
                         if (!(ask['contractAddress'] in collectionAddresses) || collectionChains[ask['contractAddress']] !== CHAIN_NAME) {
-                            console.log("Skipping", ask['contractAddress']-ask['tokenNumber']);
+                            console.log("Skipping", `${ask['contractAddress']}-${ask['tokenNumber']}`);
                             mnbeansFungibleListings.shift();
                             continue;
                         }
         
-                        let holder = await db.oneOrNone('SELECT "currentOwner", "lastTransfer", "balance" FROM "holders" WHERE "id" = $1', [`${ask['contractAddress']}-${ask['tokenNumber']}-${ask['lister']}`]);
-                        if (holder === null) {
-                            console.log("Skipping", ask['tokenId']);
-                            mnbeansFungibleListings.shift();
-                            continue;
-                        }
+                        // let holder = await db.oneOrNone('SELECT "currentOwner", "lastTransfer", "balance" FROM "holders" WHERE "id" = $1', [`${ask['contractAddress']}-${ask['tokenNumber']}-${ask['lister']}`]);
+                        // if (holder === null) {
+                        //     console.log("Skipping", `${ask['contractAddress']}-${ask['tokenNumber']} @ ${ask['lastUpdatedTimestamp']}. tradeHash: ${ask['tradeHash']}. transactionHash: ${ask['transactionHash']}`);
+                        //     mnbeansFungibleListings.shift();
+                        //     continue;
+                        // }
         
-                        if ((ask['remainingQuantity'] < holder['balance']) || holder['balance' === "0"]) {
-                            deadTrades.push(Object.assign({}, ask, holder));
-                            //TODO: get relayer to delete listing from contract
-                        } else {
-                            const fungibleMarketPlaceContract = new provider.eth.Contract(ABIS.FUNGIBLE_MARKET, chainObject?.fungible_marketplace_contract_address);
-                            const isValidTrade = await fungibleMarketPlaceContract?.methods.isValidTrade(ask['tradeHash']).call();
-                            if (!isValidTrade) {
-                                console.log(`found invalid trade ${ask['tradeHash']}`);
-                                deadTrades.push(Object.assign({}, ask, holder));
-                            }
+                        // if ((ask['remainingQuantity'] < holder['balance']) || holder['balance' === "0"]) {
+                        //     deadTrades.push(Object.assign({}, ask, holder));
+                        //     //TODO: get relayer to delete listing from contract
+                        // } else {
+                        const isValidTrade = await fungibleMarketPlaceContract?.methods.isValidTrade(ask['tradeHash']).call();
+                        if (!isValidTrade) {
+                            console.log(`found invalid trade ${ask['tradeHash']}`);
+                            deadTrades.push(ask);
                         }
+                        // }
                         mnbeansFungibleListings.shift();
                     }
                 } catch (e) {
@@ -148,7 +148,7 @@ async function main() {
                 }
             }
         
-            console.log("Invalid 1155 listings: ", deadTrades.length, deadTrades);
+            console.log("Invalid 1155 listings: ", deadTrades.length);
 
             let oldContracts = {};
             let tokenIds = [];
@@ -166,8 +166,23 @@ async function main() {
                 tokenIds.push(oldAsk['tokenId']);
             }
         
-            console.log(oldContracts);
+            let oldFungibleContracts = {};
+            let tradeHashes = [];
+            deadTrades.forEach((trade) => {
+                tradeHashes.push(trade['tradeHash']);
+                if (!(trade['contractAddress'] in oldFungibleContracts)) {
+                    oldFungibleContracts[trade['contractAddress']] = {
+                        title: collectionAddresses[trade['contractAddress']],
+                        count: 0,
+                        entities: new Set()
+                    }
+                }
+        
+                oldFungibleContracts[trade['contractAddress']]['count']++;
+                oldFungibleContracts[trade['contractAddress']]['entities'].add(trade['tokenNumber']);
+            })
 
+            console.log(oldContracts, oldFungibleContracts);
         
             if (tokenIds.length) {
                 let date_ob = new Date();
@@ -179,6 +194,24 @@ async function main() {
                     await fs.writeFile(`./deletions/${today}.sql`, `UPDATE "collections" SET "ceilingPrice" = (SELECT MAX("value") FROM "asks" WHERE "collectionId" = '${collectionId}'), "floorPrice" = (SELECT MIN("value") FROM "asks" WHERE "collectionId" = '${collectionId}') WHERE "id" = '${collectionId}';`, { flag: 'a+' }, err => {});
                 }
             } 
+
+            if (deadTrades.length) {
+                let date_ob = new Date();
+                let today = date_ob.getFullYear() + '-' + ("0" + (date_ob.getMonth() + 1)).slice(-2) + '-' + ("0" + date_ob.getDate()).slice(-2) + "-" + date_ob.getHours() + "-" + date_ob.getMinutes() + "-" + date_ob.getSeconds();
+                await fs.writeFile(`./deletions/${today}.sql`, `DELETE FROM "fungibleTrades" WHERE "tradeHash" IN ('${tradeHashes.join("','")}');`, { flag: 'a+' }, err => {});
+
+                for (let CA in oldFungibleContracts) {
+                    // UPDATE COLLECTION FLOOR/CEILINGS
+                    const [floorPrice, ceilingPrice] = await getFungibleCollectionPrices(CA, tradeHashes);
+                    await fs.writeFile(`./deletions/${today}.sql`, `UPDATE "collections" SET "floorPrice" = ${floorPrice}, "ceilingPrice" = ${ceilingPrice} WHERE "id" = ${CA};`, { flag: 'a+' }, err => {});
+
+                    oldFungibleContracts[CA]?.entities?.forEach(async (tokenNumber) => {
+                        // UPDATE TOKEN FLOOR/CEILINGS
+                        const [highestBid, lowestAsk] = await getFungibleTokenPrices(CA, tokenNumber, tradeHashes);
+                        await fs.writeFile(`./deletions/${today}.sql`, `UPDATE "tokens" SET "currentAsk" = ${lowestAsk}, "highestBid" = ${highestBid} WHERE "id" = ${CA}-${tokenNumber};`, { flag: 'a+' }, err => {});
+                    })
+                }
+            }
             
         });
 }
@@ -187,6 +220,59 @@ function sleep(ms) {
     return new Promise((resolve) => {
         setTimeout(resolve, ms);
     });
+}
+
+
+async function getFungibleTokenPrices(CA, tokenId, tradeHashesToIgnore = []) {
+    let highestBid = null;
+    let lowestAsk = null;
+
+    let trades = await db.manyOrNone(`SELECT * FROM "fungibleTrades" WHERE "contractAddress" = $1 AND "tokenNumber" = $2 AND ("status" = 'OPEN' OR "status" = 'PARTIAL') AND "tradeHash" NOT IN ('${tradeHashesToIgnore.join("','")}')`, [CA, tokenId]);
+    if (trades.length > 0) {
+        for (let trade of trades) {
+            if (trade['tradeType'] === "BUY" && (highestBid === null || (provider.utils.toBN(trade['pricePerUnit'])).gte(provider.utils.toBN(highestBid)))) {
+                highestBid = provider.utils.toBN(trade['pricePerUnit']);
+            }
+            if (trade['tradeType'] === "SELL" && (lowestAsk === null || (provider.utils.toBN(trade['pricePerUnit'])).lte(provider.utils.toBN(lowestAsk)))) {
+                lowestAsk = provider.utils.toBN(trade['pricePerUnit']);
+            }
+        }
+    }
+
+    if (highestBid === null) {
+        highestBid = provider.utils.toBN(0);
+    }
+    if (lowestAsk === null) {
+        lowestAsk = provider.utils.toBN(0);
+    }
+
+    return [highestBid.toString(), lowestAsk.toString()];
+}
+
+async function getFungibleCollectionPrices(collectionId, tradeHashesToIgnore = []) {
+    let floorPrice = null;
+    let ceilingPrice = null;
+
+    let trades = await db.manyOrNone(`SELECT * FROM "fungibleTrades" WHERE "contractAddress" = $1 AND ("status" = 'OPEN' OR "status" = 'PARTIAL') AND "tradeType" = 'SELL' AND "tradeHash" NOT IN ('${tradeHashesToIgnore.join("','")}')`, [collectionId]);
+    if (trades.length > 0) {
+        for (let trade of trades) {
+            if (floorPrice === null || (provider.utils.toBN(trade['pricePerUnit'])).lte(provider.utils.toBN(floorPrice))) {
+                floorPrice = provider.utils.toBN(trade['pricePerUnit']);
+            }
+            if (ceilingPrice === null || (provider.utils.toBN(trade['pricePerUnit'])).gte(provider.utils.toBN(ceilingPrice))) {
+                ceilingPrice = provider.utils.toBN(trade['pricePerUnit']);
+            }
+        }
+    }
+
+    if (floorPrice === null) {
+        floorPrice = provider.utils.toBN(0);
+    }
+    if (ceilingPrice === null) {
+        ceilingPrice = provider.utils.toBN(0);
+    }
+
+    return [floorPrice.toString(), ceilingPrice.toString()];
 }
 
 main().then((e => {

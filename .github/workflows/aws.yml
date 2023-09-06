@@ -164,7 +164,7 @@ jobs:
         # Build cleanup container and push to ECR
         cd ../
         cp .env cleanup/.env
-        cp chainIndexers/utils/chains.js cleanup/chains.js
+        cp -r chainIndexers/utils/ cleanup/utils
         cd cleanup
         docker build -t $IMAGE_TAG .
         docker tag $IMAGE_TAG $ECR_REGISTRY/$ECR_CLEANUP_REPOSITORY:$IMAGE_TAG
