@@ -10,6 +10,8 @@ COPY package.json package-lock.json* ./
 # Install dependencies
 RUN npm install
 
+RUN apk --update add postgresql-client
+
 # Copy cleanup directory
 COPY . .
 
