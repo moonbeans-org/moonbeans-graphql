@@ -203,12 +203,12 @@ async function main() {
                 for (let CA in oldFungibleContracts) {
                     // UPDATE COLLECTION FLOOR/CEILINGS
                     const [floorPrice, ceilingPrice] = await getFungibleCollectionPrices(CA, tradeHashes);
-                    await fs.writeFile(`./deletions/${today}.sql`, `UPDATE "collections" SET "floorPrice" = ${floorPrice}, "ceilingPrice" = ${ceilingPrice} WHERE "id" = ${CA};`, { flag: 'a+' }, err => {});
+                    await fs.writeFile(`./deletions/${today}.sql`, `UPDATE "collections" SET "floorPrice" = ${floorPrice}, "ceilingPrice" = ${ceilingPrice} WHERE "id" = '${CA}';`, { flag: 'a+' }, err => {});
 
                     oldFungibleContracts[CA]?.entities?.forEach(async (tokenNumber) => {
                         // UPDATE TOKEN FLOOR/CEILINGS
                         const [highestBid, lowestAsk] = await getFungibleTokenPrices(CA, tokenNumber, tradeHashes);
-                        await fs.writeFile(`./deletions/${today}.sql`, `UPDATE "tokens" SET "currentAsk" = ${lowestAsk}, "highestBid" = ${highestBid} WHERE "id" = ${CA}-${tokenNumber};`, { flag: 'a+' }, err => {});
+                        await fs.writeFile(`./deletions/${today}.sql`, `UPDATE "tokens" SET "currentAsk" = ${lowestAsk}, "highestBid" = ${highestBid} WHERE "id" = '${CA}-${tokenNumber}';`, { flag: 'a+' }, err => {});
                     })
                 }
             }
