@@ -108,7 +108,7 @@ async function main() {
 
             //Handle 1155s
             let deadTrades = [];
-            mnbeansFungibleListings = await db.manyOrNone('SELECT "contractAddress", "tokenNumber", "lastUpdatedTimestamp", "status", "remainingQuantity", "transactionHash", "tradeType", "tradeHash" FROM "fungibleTrades" WHERE "tradeType" = $1', ["SELL"]);
+            mnbeansFungibleListings = await db.manyOrNone(`SELECT "contractAddress", "tokenNumber", "lastUpdatedTimestamp", "status", "remainingQuantity", "transactionHash", "tradeType", "tradeHash" FROM "fungibleTrades" WHERE "tradeType" = $1 AND "status" IN ('OPEN','PARTIAL')`, ["SELL"]);
             console.log("Fungible Listings: ", mnbeansFungibleListings.length)
             if (mnbeansFungibleListings.length > 0) {
                 console.log("Processing token list..");
@@ -134,7 +134,9 @@ async function main() {
                         //     //TODO: get relayer to delete listing from contract
                         // } else {
                         const isValidTrade = await fungibleMarketPlaceContract?.methods.isValidTrade(ask['tradeHash']).call();
-                        if (!isValidTrade) {
+                        const tradeData = await fungibleMarketPlaceContract?.methods.getTrade(ask['tradeHash']).call();
+
+                        if (!isValidTrade || tradeData?.['price'] === "0") {
                             console.log(`found invalid trade ${ask['tradeHash']}`);
                             deadTrades.push(ask);
                         }
