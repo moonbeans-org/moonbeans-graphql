@@ -17,7 +17,8 @@ const CHAINS = {
         "rpc": `wss://moonbeam.blastapi.io/${process.env.BLAST_KEY}`,
         "old_marketplace_contract_address": "0x683724817a7d526d6256Aec0D6f8ddF541b924de",
         "marketplace_contract_address": "0x3e59684d7806aD0BEDeaB9fb4c2D277F7300DbAe",
-        "fungible_marketplace_contract_address": "0x9Ff0cF19F66ab00774DE20b311825b7F65f23972",
+        // "fungible_marketplace_contract_address": "0x9Ff0cF19F66ab00774DE20b311825b7F65f23972",
+        "fungible_marketplace_contract_address": "0x950DC6b58A416F09Ce2886543c50c17E24f96863",
         "testnet": false,
         "startBlock": 975368
     },
