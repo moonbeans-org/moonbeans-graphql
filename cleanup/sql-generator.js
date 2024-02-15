@@ -72,14 +72,14 @@ async function main() {
                     while (mnbeansAsks.length > 0) {
                         ask = mnbeansAsks[0];
                         if (!(ask['collectionId'] in collectionAddresses) || collectionChains[ask['collectionId']]  !== CHAIN_NAME) {
-                            console.log("Skipping", ask['tokenId']);
+                            console.log("Skipping", ask['tokenId'], `invalid collection or doesn't match ${CHAIN_NAME}`);
                             mnbeansAsks.shift();
                             continue;
                         }
         
                         let holder = await db.oneOrNone('SELECT "currentOwner", "lastTransfer", "balance" FROM "holders" WHERE "id" = $1', [`${ask['tokenId']}-${ask['lister']}`]);
                         if (holder === null) {
-                            console.log("Skipping", ask['tokenId']);
+                            console.log("Skipping", ask['tokenId'], "holder data is missing");
                             mnbeansAsks.shift();
                             continue;
                         }
